@@ -208,7 +208,7 @@ export default function ApplicationForm({
                             <label
                                 className={`${labelClass} flex items-center gap-2`}
                             >
-                                <FaGithub className="text-slate-400" /> GitHub
+                                <FaGithub className="text-[var(--career-text-subtle)]" /> GitHub
                             </label>
                             <input
                                 value={formData.github}
@@ -222,7 +222,7 @@ export default function ApplicationForm({
                             <label
                                 className={`${labelClass} flex items-center gap-2`}
                             >
-                                <FaLinkedin className="text-slate-400" />{" "}
+                                <FaLinkedin className="text-[var(--career-text-subtle)]" />{" "}
                                 LinkedIn
                             </label>
                             <input
@@ -237,7 +237,7 @@ export default function ApplicationForm({
                             <label
                                 className={`${labelClass} flex items-center gap-2`}
                             >
-                                <FaGlobe className="text-slate-400" /> Portfolio
+                                <FaGlobe className="text-[var(--career-text-subtle)]" /> Portfolio
                             </label>
                             <input
                                 value={formData.portfolio}
@@ -258,7 +258,7 @@ export default function ApplicationForm({
                             onChange={(e) =>
                                 setResumeFile(e.target.files?.[0] || null)
                             }
-                            className={`${fieldClass} file:mr-4 file:rounded-md file:border-0 file:bg-teal-500/20 file:px-3 file:py-1 file:text-sm file:font-medium file:text-teal-200`}
+                            className={`${fieldClass} file:mr-4 file:rounded-md file:border-0 file:bg-[var(--career-bg-muted)] file:px-3 file:py-1 file:text-sm file:font-medium file:text-[var(--career-text)]`}
                         />
                     </div>
                 </div>
@@ -302,12 +302,12 @@ export default function ApplicationForm({
     return (
         <form
             onSubmit={handleSubmit}
-            className="glass-effect rounded-2xl p-6 md:p-10"
+            className="career-card p-6 md:p-10"
         >
-            <p className="mb-1 text-sm font-medium text-teal-300/90">
+            <p className="mb-1 text-sm font-medium text-[var(--career-text-muted)]">
                 Applying for
             </p>
-            <h2 className="mb-8 text-2xl font-bold text-slate-100">
+            <h2 className="mb-8 text-2xl font-medium text-[var(--career-text)]">
                 {jobTitle}
             </h2>
 
@@ -317,10 +317,10 @@ export default function ApplicationForm({
                         key={s.title}
                         type="button"
                         onClick={() => setCurrentSection(i)}
-                        className={`flex-1 rounded-lg py-2.5 text-xs font-medium transition-all sm:text-sm ${
+                        className={`flex-1 rounded-md border py-2.5 text-xs font-medium transition-colors sm:text-sm ${
                             currentSection === i
-                                ? "bg-gradient-to-r from-violet-600 to-teal-600 text-white shadow-lg shadow-teal-500/10"
-                                : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200"
+                                ? "border-[var(--career-text)] bg-[var(--career-text)] text-white"
+                                : "border-[var(--career-border)] bg-white text-[var(--career-text-muted)] hover:bg-[var(--career-bg-subtle)]"
                         }`}
                     >
                         {i + 1}. {s.title}

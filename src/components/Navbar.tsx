@@ -1,14 +1,14 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import Image from "next/image";
 import { ChevronDownIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 const navItems = [
     { name: "Home", path: "/" },
-    { name: "Open Roles", path: "/jobs" },
+    { name: "Open roles", path: "/jobs" },
     { name: "Culture", path: "/culture" },
 ];
 
@@ -46,7 +46,7 @@ export default function Navbar() {
 
     useEffect(() => {
         if (!isMounted) return;
-        const handleScroll = () => setIsScrolled(window.scrollY > 50);
+        const handleScroll = () => setIsScrolled(window.scrollY > 8);
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, [isMounted]);
@@ -74,36 +74,34 @@ export default function Navbar() {
     };
 
     const linkClass = (path: string) =>
-        `relative group transition-colors ${
+        `text-sm font-medium transition-colors ${
             isActive(path)
-                ? "text-teal-300"
-                : "text-slate-300 hover:text-white"
+                ? "text-[var(--career-text)]"
+                : "text-[var(--career-text-muted)] hover:text-[var(--career-text)]"
         }`;
 
     return (
-        <motion.nav
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`fixed w-full z-50 transition-all duration-300 ${
+        <nav
+            className={`sticky top-0 z-50 w-full border-b bg-white transition-shadow ${
                 isScrolled
-                    ? "border-b border-white/5 bg-[#080c14]/90 py-2 backdrop-blur-xl"
-                    : "bg-transparent py-5"
+                    ? "border-[var(--career-border)] shadow-sm"
+                    : "border-transparent"
             }`}
         >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link href="/" className="flex items-center gap-2">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="flex h-16 items-center justify-between">
+                    <div className="flex items-center gap-6">
+                        <Link href="/" className="flex items-center gap-3">
                             <Image
                                 src="/logo.svg"
                                 alt="DigiCraft Careers"
-                                width={52}
-                                height={52}
-                                className="h-12 w-auto"
+                                width={40}
+                                height={40}
+                                className="h-9 w-auto"
                                 priority
                             />
-                            <span className="hidden sm:block text-sm font-semibold tracking-wide">
-                                <span className="text-violet-400">Careers</span>
+                            <span className="hidden text-sm font-medium text-[var(--career-text)] sm:block">
+                                Careers
                             </span>
                         </Link>
                         <div className="relative">
@@ -116,27 +114,27 @@ export default function Navbar() {
                             >
                                 <button
                                     title="DigiCraft Products"
-                                    className="hidden md:flex items-center justify-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-200 backdrop-blur-sm transition-all hover:border-teal-400/30 hover:bg-white/10"
+                                    className="hidden items-center justify-center gap-1 rounded-md border border-[var(--career-border)] px-3 py-1.5 text-sm text-[var(--career-text-muted)] transition-colors hover:bg-[var(--career-bg-subtle)] hover:text-[var(--career-text)] md:flex"
                                 >
-                                    Products{" "}
+                                    Products
                                     <ChevronDownIcon
-                                        className={`h-4 w-4 transition-transform duration-300 ${isDropdownOpen ? "rotate-180" : ""}`}
+                                        className={`h-4 w-4 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
                                     />
                                 </button>
                             </div>
                             {isMounted && isDropdownOpen && (
                                 <div
                                     ref={dropdownRef}
-                                    className="absolute left-0 z-50 mt-2 w-48 rounded-xl border border-white/10 bg-[#0f1520]/95 shadow-xl backdrop-blur-xl"
+                                    className="absolute left-0 z-50 mt-2 w-48 rounded-lg border border-[var(--career-border)] bg-white py-1 shadow-lg"
                                 >
-                                    <ul className="py-1">
+                                    <ul>
                                         {productDropdownItems.map((item) => (
                                             <li key={item.name}>
                                                 <a
                                                     href={item.href}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="mx-1 flex items-center gap-2 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                                                    className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--career-text-muted)] transition-colors hover:bg-[var(--career-bg-subtle)] hover:text-[var(--career-text)]"
                                                     onClick={() =>
                                                         setIsDropdownOpen(false)
                                                     }
@@ -148,7 +146,7 @@ export default function Navbar() {
                                                         height={20}
                                                         className="h-5 w-5 object-contain"
                                                     />
-                                                    <span className="text-sm font-medium">
+                                                    <span className="font-medium">
                                                         {item.name}
                                                     </span>
                                                 </a>
@@ -160,7 +158,7 @@ export default function Navbar() {
                         </div>
                     </div>
 
-                    <div className="hidden lg:flex items-center space-x-8">
+                    <div className="hidden items-center gap-8 lg:flex">
                         {navItems.map((item) => (
                             <Link
                                 key={item.path}
@@ -168,83 +166,65 @@ export default function Navbar() {
                                 className={linkClass(item.path)}
                             >
                                 {item.name}
-                                <span
-                                    className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-violet-500 to-teal-400 transition-all duration-300 ${
-                                        isActive(item.path)
-                                            ? "w-full"
-                                            : "w-0 group-hover:w-full"
-                                    }`}
-                                />
                             </Link>
                         ))}
                         <button
                             onClick={() => router.push("/jobs")}
-                            className="career-btn-primary !px-5 !py-2 text-sm"
+                            className="career-btn-primary !px-4 !py-2"
                         >
-                            View Open Roles
+                            View open roles
                         </button>
                     </div>
 
                     <button
-                        className="lg:hidden p-2 focus:outline-none"
+                        className="p-2 lg:hidden"
                         onClick={() => setIsOpen(!isOpen)}
                         aria-label="Toggle menu"
                     >
                         <div
-                            className={`mb-1.5 h-0.5 w-6 bg-slate-200 transition-all ${
-                                isOpen
-                                    ? "translate-y-2 rotate-45"
-                                    : ""
+                            className={`mb-1.5 h-0.5 w-6 bg-[var(--career-text)] transition-all ${
+                                isOpen ? "translate-y-2 rotate-45" : ""
                             }`}
                         />
                         <div
-                            className={`mb-1.5 h-0.5 w-6 bg-slate-200 transition-all ${
+                            className={`mb-1.5 h-0.5 w-6 bg-[var(--career-text)] transition-all ${
                                 isOpen ? "opacity-0" : ""
                             }`}
                         />
                         <div
-                            className={`h-0.5 w-6 bg-slate-200 transition-all ${
-                                isOpen
-                                    ? "-translate-y-2 -rotate-45"
-                                    : ""
+                            className={`h-0.5 w-6 bg-[var(--career-text)] transition-all ${
+                                isOpen ? "-translate-y-2 -rotate-45" : ""
                             }`}
                         />
                     </button>
                 </div>
             </div>
 
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="border-t border-white/5 bg-[#0f1520]/95 backdrop-blur-xl lg:hidden"
-                    >
-                        <div className="space-y-1 px-4 py-6">
-                            {navItems.map((item) => (
-                                <Link
-                                    key={item.path}
-                                    href={item.path}
-                                    onClick={() => setIsOpen(false)}
-                                    className={`block rounded-lg px-3 py-2.5 ${linkClass(item.path)}`}
-                                >
-                                    {item.name}
-                                </Link>
-                            ))}
-                            <button
-                                onClick={() => {
-                                    setIsOpen(false);
-                                    router.push("/jobs");
-                                }}
-                                className="mt-2 w-full career-btn-primary"
+            {isOpen && (
+                <div className="border-t border-[var(--career-border)] bg-white lg:hidden">
+                    <div className="space-y-1 px-4 py-4">
+                        {navItems.map((item) => (
+                            <Link
+                                key={item.path}
+                                href={item.path}
+                                onClick={() => setIsOpen(false)}
+                                className={`block rounded-md px-3 py-2.5 ${linkClass(item.path)}`}
                             >
-                                View Open Roles
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </motion.nav>
+                                {item.name}
+                            </Link>
+                        ))}
+                        <button
+                            onClick={() => {
+                                setIsOpen(false);
+                                router.push("/jobs");
+                            }}
+                            className="mt-2 w-full career-btn-primary"
+                        >
+                            View open roles
+                        </button>
+                    </div>
+                </div>
+            )}
+        </nav>
     );
 }

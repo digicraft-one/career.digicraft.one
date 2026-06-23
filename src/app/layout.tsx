@@ -12,11 +12,11 @@ const siteUrl = "https://career.digicraft.one";
 export const metadata: Metadata = {
     metadataBase: new URL(siteUrl),
     title: {
-        default: "DigiCraft Careers - Build the Future With Us",
+        default: "DigiCraft Careers",
         template: "%s | DigiCraft Careers",
     },
-    description:
-        "Explore career opportunities at DigiCraft. Join our team of innovators building cutting-edge digital products.",
+        description:
+        "Explore career opportunities at DigiCraft. Join our team building reliable, production-grade digital products.",
     openGraph: {
         title: "DigiCraft Careers",
         description: "Build the future with DigiCraft",

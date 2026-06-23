@@ -16,11 +16,18 @@ export default function SectionHeading({
     return (
         <div className={`mb-12 max-w-3xl ${alignClass}`}>
             <h2 className={`section-title ${alignClass}`}>
-                {title}{" "}
-                {highlight && <span className="text-gradient">{highlight}</span>}
+                {title}
+                {highlight && (
+                    <>
+                        {" "}
+                        <span className="font-medium">{highlight}</span>
+                    </>
+                )}
             </h2>
             {subtitle && (
-                <p className={`section-subtitle ${align === "center" ? "mx-auto" : ""}`}>
+                <p
+                    className={`section-subtitle ${align === "center" ? "mx-auto" : ""}`}
+                >
                     {subtitle}
                 </p>
             )}

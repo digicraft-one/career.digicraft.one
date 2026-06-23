@@ -30,21 +30,25 @@ export default function ApplyPage() {
 
     if (!job) {
         return (
-            <main className="flex min-h-screen flex-col items-center justify-center gap-4">
-                <p className="text-slate-400">Job not found</p>
-                <Link href="/jobs" className="text-teal-300 hover:underline">
-                    Back to jobs
-                </Link>
-            </main>
+            <PageShell>
+                <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
+                    <p className="text-[var(--career-text-muted)]">
+                        Job not found
+                    </p>
+                    <Link href="/jobs" className="career-link text-sm">
+                        Back to open roles
+                    </Link>
+                </div>
+            </PageShell>
         );
     }
 
     return (
         <PageShell>
-            <div className="mx-auto max-w-3xl px-4 pb-20 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-3xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
                 <Link
                     href={`/jobs/${slug}`}
-                    className="mb-6 inline-block text-sm text-teal-300 transition-colors hover:text-teal-200"
+                    className="mb-6 inline-block text-sm text-[var(--career-text-muted)] transition-colors hover:text-[var(--career-accent)]"
                 >
                     ← Back to job details
                 </Link>

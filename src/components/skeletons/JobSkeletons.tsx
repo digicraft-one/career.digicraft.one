@@ -2,20 +2,20 @@ import { Skeleton } from "@/components/skeletons/Skeleton";
 
 export function JobCardSkeleton() {
     return (
-        <div className="glass-effect rounded-2xl p-6">
+        <div className="career-card p-6">
             <div className="mb-3 flex justify-between">
-                <Skeleton variant="dark" className="h-6 w-24 rounded-full" />
-                <Skeleton variant="dark" className="h-5 w-5 rounded" />
+                <Skeleton className="h-6 w-24 rounded-md" />
+                <Skeleton className="h-4 w-4 rounded" />
             </div>
-            <Skeleton variant="dark" className="mb-3 h-7 w-3/4" />
+            <Skeleton className="mb-3 h-6 w-3/4" />
             <div className="mb-4 flex flex-wrap gap-3">
-                <Skeleton variant="dark" className="h-4 w-28" />
-                <Skeleton variant="dark" className="h-4 w-20" />
-                <Skeleton variant="dark" className="h-4 w-16" />
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-16" />
             </div>
-            <Skeleton variant="dark" className="mb-4 h-4 w-32" />
-            <Skeleton variant="dark" className="h-4 w-full" />
-            <Skeleton variant="dark" className="mt-2 h-4 w-2/3" />
+            <Skeleton className="mb-4 h-4 w-32" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="mt-2 h-4 w-2/3" />
         </div>
     );
 }
@@ -33,9 +33,9 @@ export function JobsGridSkeleton({ count = 6 }: { count?: number }) {
 export function JobsFiltersSkeleton() {
     return (
         <div className="mb-10 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_11rem_11rem]">
-            <Skeleton variant="dark" className="h-10 w-full rounded-lg" />
-            <Skeleton variant="dark" className="h-10 w-full rounded-lg" />
-            <Skeleton variant="dark" className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-md" />
+            <Skeleton className="h-10 w-full rounded-md" />
+            <Skeleton className="h-10 w-full rounded-md" />
         </div>
     );
 }
@@ -44,8 +44,8 @@ export function JobsPageSkeleton() {
     return (
         <>
             <div className="mb-12 space-y-3">
-                <Skeleton variant="dark" className="h-10 w-64" />
-                <Skeleton variant="dark" className="h-5 w-96 max-w-full" />
+                <Skeleton className="h-10 w-64" />
+                <Skeleton className="h-5 w-96 max-w-full" />
             </div>
             <JobsFiltersSkeleton />
             <JobsGridSkeleton count={6} />

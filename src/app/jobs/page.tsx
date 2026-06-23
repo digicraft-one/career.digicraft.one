@@ -52,13 +52,16 @@ export default function JobsPage() {
 
     return (
         <PageShell>
-            <div className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-                <SectionHeading
-                    title="Open"
-                    highlight="Roles"
-                    subtitle="Find your next opportunity at DigiCraft. We're hiring across engineering, design, and more."
-                />
-
+            <div className="border-b border-[var(--career-border)] bg-[var(--career-bg-subtle)]">
+                <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+                    <SectionHeading
+                        title="Open"
+                        highlight="roles"
+                        subtitle="Find your next opportunity at DigiCraft. We're hiring across engineering, design, and product."
+                    />
+                </div>
+            </div>
+            <div className="mx-auto max-w-7xl px-4 py-12 pb-20 sm:px-6 lg:px-8">
                 {loading ? (
                     <>
                         <JobsFiltersSkeleton />
@@ -78,14 +81,14 @@ export default function JobsPage() {
                                 onChange={(e) => setDeptFilter(e.target.value)}
                                 className="career-field w-full"
                             >
-                                <option value="all" className="bg-[#0f1520]">
+                                <option value="all" className="bg-white">
                                     All Departments
                                 </option>
                                 {departments.map((d) => (
                                     <option
                                         key={d}
                                         value={d}
-                                        className="bg-[#0f1520]"
+                                        className="bg-white"
                                     >
                                         {d}
                                     </option>
@@ -96,30 +99,30 @@ export default function JobsPage() {
                                 onChange={(e) => setTypeFilter(e.target.value)}
                                 className="career-field w-full"
                             >
-                                <option value="all" className="bg-[#0f1520]">
+                                <option value="all" className="bg-white">
                                     All Types
                                 </option>
                                 <option
                                     value="full-time"
-                                    className="bg-[#0f1520]"
+                                    className="bg-white"
                                 >
                                     Full-time
                                 </option>
                                 <option
                                     value="part-time"
-                                    className="bg-[#0f1520]"
+                                    className="bg-white"
                                 >
                                     Part-time
                                 </option>
                                 <option
                                     value="contract"
-                                    className="bg-[#0f1520]"
+                                    className="bg-white"
                                 >
                                     Contract
                                 </option>
                                 <option
                                     value="internship"
-                                    className="bg-[#0f1520]"
+                                    className="bg-white"
                                 >
                                     Internship
                                 </option>
@@ -127,9 +130,9 @@ export default function JobsPage() {
                         </div>
 
                         {filtered.length === 0 ? (
-                            <div className="glass-effect rounded-2xl p-12 text-center">
-                                <p className="text-lg text-slate-400">
-                                    No open positions right now. Check back soon!
+                            <div className="career-card p-12 text-center">
+                                <p className="text-lg text-[var(--career-text-muted)]">
+                                    No open positions right now. Check back soon.
                                 </p>
                             </div>
                         ) : (

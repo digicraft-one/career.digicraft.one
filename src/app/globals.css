@@ -2,114 +2,101 @@
 @import "tw-animate-css";
 
 :root {
-    --career-bg: #080c14;
-    --career-bg-elevated: #0f1520;
-    --career-violet: #8b5cf6;
-    --career-teal: #2dd4bf;
-    --career-amber: #fbbf24;
-    --career-rose: #f472b6;
-    --career-text: #f1f5f9;
-    --career-text-muted: #94a3b8;
-    --career-text-subtle: #64748b;
-    --career-border: rgba(148, 163, 184, 0.12);
-    --career-glass: rgba(15, 21, 32, 0.72);
+    --career-bg: #ffffff;
+    --career-bg-subtle: #f8f9fa;
+    --career-bg-muted: #f1f3f4;
+    --career-text: #202124;
+    --career-text-muted: #5f6368;
+    --career-text-subtle: #80868b;
+    --career-border: #dadce0;
+    --career-border-strong: #bdc1c6;
+    --career-accent: #1a73e8;
+    --career-accent-hover: #1557b0;
 }
 
 body {
     color: var(--career-text);
     background-color: var(--career-bg);
-    background-image:
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(139, 92, 246, 0.15), transparent),
-        radial-gradient(ellipse 60% 40% at 100% 50%, rgba(45, 212, 191, 0.08), transparent),
-        linear-gradient(to bottom, var(--career-bg), #050810);
 }
 
 ::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--career-bg);
+    background: var(--career-bg-subtle);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #334155;
-    border-radius: 3px;
+    background: var(--career-border-strong);
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--career-teal);
+    background: #9aa0a6;
 }
 
-/* Brand gradients — violet → teal → amber (distinct from digicraft purple-pink & marketplace blue) */
-.text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-teal-300 to-amber-300;
+.career-link {
+    @apply text-[var(--career-accent)] transition-colors hover:text-[var(--career-accent-hover)] hover:underline;
 }
 
-.text-gradient-hero {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-teal-400 to-amber-400;
+.career-card {
+    @apply rounded-lg border border-[var(--career-border)] bg-white transition-shadow;
 }
 
-.glass-effect {
-    background: var(--career-glass);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--career-border);
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+.career-card:hover {
+    @apply border-[var(--career-border-strong)] shadow-sm;
 }
 
-.glass-effect:hover {
-    border-color: rgba(45, 212, 191, 0.25);
-    box-shadow:
-        0 12px 40px rgba(45, 212, 191, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-
-/* Public-page form fields on dark backgrounds */
 .career-field {
-    @apply rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 shadow-none outline-none transition-all;
-    @apply placeholder:text-slate-500 focus:border-teal-400/50 focus:ring-2 focus:ring-teal-400/20;
+    @apply w-full rounded-md border border-[var(--career-border)] bg-white px-3 py-2.5 text-sm text-[var(--career-text)] shadow-none outline-none transition-colors;
+    @apply placeholder:text-[var(--career-text-subtle)] focus:border-[var(--career-accent)] focus:ring-2 focus:ring-[var(--career-accent)]/15;
 }
 
 .career-label {
-    @apply text-sm font-medium text-slate-200;
+    @apply text-sm font-medium text-[var(--career-text)];
 }
 
 .career-btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 via-teal-500 to-teal-600 px-6 py-3 font-semibold text-white shadow-lg shadow-teal-500/20 transition-all;
-    @apply hover:shadow-teal-500/30 hover:brightness-110;
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-[#202124] px-6 py-3 text-sm font-medium text-white transition-colors;
+    @apply hover:bg-[#3c4043] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#202124];
 }
 
 .career-btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3 font-semibold text-slate-200 transition-all;
-    @apply hover:border-teal-400/40 hover:bg-white/10 hover:text-white;
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-[var(--career-border-strong)] bg-white px-6 py-3 text-sm font-medium text-[var(--career-text)] transition-colors;
+    @apply hover:bg-[var(--career-bg-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--career-border-strong)];
 }
 
 .career-badge {
-    @apply inline-flex items-center rounded-full border border-teal-400/30 bg-teal-400/10 px-3 py-1 text-xs font-medium text-teal-300;
+    @apply inline-flex items-center rounded-md border border-[var(--career-border)] bg-[var(--career-bg-subtle)] px-2.5 py-0.5 text-xs font-medium text-[var(--career-text-muted)];
 }
 
 .section-title {
-    @apply text-3xl font-bold tracking-tight text-slate-100 md:text-4xl;
+    @apply text-3xl font-normal tracking-tight text-[var(--career-text)] md:text-4xl;
 }
 
 .section-subtitle {
-    @apply mt-3 max-w-2xl text-lg text-slate-400;
+    @apply mt-4 max-w-2xl text-lg leading-relaxed text-[var(--career-text-muted)];
 }
 
 .prose-career h2 {
-    @apply mb-4 text-xl font-bold text-slate-100;
+    @apply mb-4 text-xl font-medium text-[var(--career-text)];
 }
 
 .prose-career p {
-    @apply text-slate-300 leading-relaxed;
+    @apply leading-relaxed text-[var(--career-text-muted)];
 }
 
 .prose-career ul {
-    @apply list-disc space-y-2 pl-5 text-slate-300;
+    @apply list-disc space-y-2 pl-5 text-[var(--career-text-muted)];
 }
 
 .prose-career li::marker {
-    color: var(--career-teal);
+    color: var(--career-text-subtle);
+}
+
+.career-section-alt {
+    background-color: var(--career-bg-subtle);
+    border-top: 1px solid var(--career-border);
+    border-bottom: 1px solid var(--career-border);
 }
