@@ -52,7 +52,7 @@ export default function JobsPage() {
 
     return (
         <PageShell>
-            <div className="border-b border-[var(--career-border)] bg-[var(--career-bg-subtle)]">
+            <div className="border-b border-(--career-border) bg-(--career-bg-subtle)">
                 <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
                     <SectionHeading
                         title="Open"
@@ -131,7 +131,7 @@ export default function JobsPage() {
 
                         {filtered.length === 0 ? (
                             <div className="career-card p-12 text-center">
-                                <p className="text-lg text-[var(--career-text-muted)]">
+                                <p className="text-lg text-(--career-text-muted)">
                                     No open positions right now. Check back soon.
                                 </p>
                             </div>

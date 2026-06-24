@@ -4,6 +4,7 @@ import { connectToDB } from "@/lib/db/mongoose";
 import {
     sendApplicationConfirmationEmail,
     sendExternalNotification,
+    sendNewApplicationAdminEmail,
 } from "@/lib/email/brevo";
 import { sendApplicationNotification } from "@/lib/telegram/telegram";
 import { Application } from "@/schemas/Application";
@@ -119,13 +120,39 @@ export async function POST(req: NextRequest) {
         }
 
         try {
-            await sendApplicationConfirmationEmail({
+            const emailResult = await sendApplicationConfirmationEmail({
                 name: body.name,
                 email: body.email,
                 jobTitle: job.title,
             });
+            if (!emailResult.success) {
+                console.error(
+                    "Confirmation email failed:",
+                    emailResult.error
+                );
+            }
         } catch (e) {
             console.error("Confirmation email failed:", e);
+        }
+
+        try {
+            const adminEmailResult = await sendNewApplicationAdminEmail({
+                name: body.name,
+                email: body.email,
+                phone: body.phone,
+                jobTitle: job.title,
+                primarySkills: body.primarySkills,
+                resumeUrl: body.resume.url,
+                adminLink,
+            });
+            if (!adminEmailResult.success) {
+                console.error(
+                    "Admin notification email failed:",
+                    adminEmailResult.error
+                );
+            }
+        } catch (e) {
+            console.error("Admin notification email failed:", e);
         }
 
         try {

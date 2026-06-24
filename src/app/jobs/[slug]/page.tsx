@@ -32,7 +32,7 @@ export default function JobDetailPage() {
         return (
             <PageShell>
                 <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
-                    <p className="text-[var(--career-text-muted)]">
+                    <p className="text-(--career-text-muted)">
                         Job not found
                     </p>
                     <Link href="/jobs" className="career-link text-sm">
@@ -45,21 +45,21 @@ export default function JobDetailPage() {
 
     return (
         <PageShell>
-            <div className="border-b border-[var(--career-border)] bg-[var(--career-bg-subtle)]">
+            <div className="border-b border-(--career-border) bg-(--career-bg-subtle)">
                 <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
                     <Link
                         href="/jobs"
-                        className="mb-6 inline-block text-sm text-[var(--career-text-muted)] transition-colors hover:text-[var(--career-accent)]"
+                        className="mb-6 inline-block text-sm text-(--career-text-muted) transition-colors hover:text-(--career-accent)"
                     >
                         ← All open roles
-                    </Link>
+                    </Link> &nbsp;
                     <span className="career-badge mb-4 inline-block">
                         {job.department}
                     </span>
-                    <h1 className="mb-6 text-3xl font-normal tracking-tight text-[var(--career-text)] md:text-4xl">
+                    <h1 className="mb-6 text-3xl font-normal tracking-tight text-(--career-text) md:text-4xl">
                         {job.title}
                     </h1>
-                    <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-[var(--career-text-muted)]">
+                    <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-(--career-text-muted)">
                         <span className="flex items-center gap-2">
                             <FiMapPin className="h-4 w-4" />
                             {job.location}
@@ -73,7 +73,7 @@ export default function JobDetailPage() {
                             {job.experienceLevel}
                         </span>
                         {job.salaryRange?.displayText && (
-                            <span className="font-medium text-[var(--career-text)]">
+                            <span className="font-medium text-(--career-text)">
                                 {job.salaryRange.displayText}
                             </span>
                         )}

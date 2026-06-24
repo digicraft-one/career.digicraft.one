@@ -9,6 +9,7 @@ import {
 
 const quickLinks = [
     { name: "Home", path: "/" },
+    { name: "About", path: "/about" },
     { name: "Open roles", path: "/jobs" },
     { name: "Culture", path: "/culture" },
     { name: "DigiCraft", path: "https://digicraft.one" },

@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 
 const navItems = [
     { name: "Home", path: "/" },
+    { name: "About", path: "/about" },
     { name: "Open roles", path: "/jobs" },
     { name: "Culture", path: "/culture" },
 ];

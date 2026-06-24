@@ -51,6 +51,12 @@ body {
 .career-field {
     @apply w-full rounded-md border border-[var(--career-border)] bg-white px-3 py-2.5 text-sm text-[var(--career-text)] shadow-none outline-none transition-colors;
     @apply placeholder:text-[var(--career-text-subtle)] focus:border-[var(--career-accent)] focus:ring-2 focus:ring-[var(--career-accent)]/15;
+    color-scheme: light;
+}
+
+.career-field option {
+    background-color: #ffffff;
+    color: #202124;
 }
 
 .career-label {
@@ -69,6 +75,14 @@ body {
 
 .career-badge {
     @apply inline-flex items-center rounded-md border border-[var(--career-border)] bg-[var(--career-bg-subtle)] px-2.5 py-0.5 text-xs font-medium text-[var(--career-text-muted)];
+}
+
+.hero-badges {
+    @apply flex flex-wrap items-center justify-center gap-1.5 sm:justify-start sm:gap-3;
+}
+
+.hero-badges .career-badge {
+    @apply shrink-0 whitespace-nowrap px-2 text-[11px] sm:px-2.5 sm:text-xs;
 }
 
 .section-title {

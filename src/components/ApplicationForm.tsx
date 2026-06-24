@@ -1,10 +1,15 @@
 "use client";
 
 import { fetchAPI } from "@/lib/api";
+import {
+    loadApplicationDraft,
+    saveApplicationDraft,
+    toSavedDraft,
+} from "@/lib/applicationDraft";
 import { ExperienceLevel } from "@/lib/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaGithub, FaLinkedin, FaGlobe } from "react-icons/fa";
 import { toast } from "sonner";
 
@@ -38,6 +43,21 @@ interface ApplicationFormProps {
 const fieldClass = "career-field w-full";
 const labelClass = "career-label";
 
+const EMPTY_FORM: FormData = {
+    name: "",
+    email: "",
+    phone: "",
+    location: "",
+    experience: "",
+    primarySkills: "",
+    secondarySkills: "",
+    github: "",
+    linkedin: "",
+    portfolio: "",
+    canJoin: "",
+    coverLetter: "",
+};
+
 export default function ApplicationForm({
     jobId,
     jobTitle,
@@ -46,20 +66,28 @@ export default function ApplicationForm({
     const [currentSection, setCurrentSection] = useState(0);
     const [loading, setLoading] = useState(false);
     const [resumeFile, setResumeFile] = useState<File | null>(null);
-    const [formData, setFormData] = useState<FormData>({
-        name: "",
-        email: "",
-        phone: "",
-        location: "",
-        experience: "",
-        primarySkills: "",
-        secondarySkills: "",
-        github: "",
-        linkedin: "",
-        portfolio: "",
-        canJoin: "",
-        coverLetter: "",
-    });
+    const [draftLoaded, setDraftLoaded] = useState(false);
+    const [formData, setFormData] = useState<FormData>(EMPTY_FORM);
+
+    useEffect(() => {
+        const draft = loadApplicationDraft();
+        if (!draft) return;
+
+        setFormData((prev) => ({
+            ...prev,
+            ...draft,
+            coverLetter: "",
+        }));
+        setDraftLoaded(true);
+    }, []);
+
+    useEffect(() => {
+        const timer = window.setTimeout(() => {
+            saveApplicationDraft(toSavedDraft(formData));
+        }, 500);
+
+        return () => window.clearTimeout(timer);
+    }, [formData]);
 
     const handleChange = (field: keyof FormData, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -94,7 +122,10 @@ export default function ApplicationForm({
                     resume,
                 }),
             });
-            toast.success("Application submitted successfully!");
+            saveApplicationDraft(toSavedDraft(formData));
+            toast.success(
+                "Application submitted! Check your email for a confirmation."
+            );
             router.push(`/jobs?applied=true`);
         } catch (err) {
             toast.error(
@@ -166,15 +197,9 @@ export default function ApplicationForm({
                             required
                             className={fieldClass}
                         >
-                            <option value="" className="bg-[#0f1520]">
-                                Select level
-                            </option>
+                            <option value="">Select level</option>
                             {EXPERIENCE_LEVELS.map((l) => (
-                                <option
-                                    key={l.value}
-                                    value={l.value}
-                                    className="bg-[#0f1520]"
-                                >
+                                <option key={l.value} value={l.value}>
                                     {l.label}
                                 </option>
                             ))}
@@ -208,7 +233,7 @@ export default function ApplicationForm({
                             <label
                                 className={`${labelClass} flex items-center gap-2`}
                             >
-                                <FaGithub className="text-[var(--career-text-subtle)]" /> GitHub
+                                <FaGithub className="text-(--career-text-subtle)" /> GitHub
                             </label>
                             <input
                                 value={formData.github}
@@ -222,7 +247,7 @@ export default function ApplicationForm({
                             <label
                                 className={`${labelClass} flex items-center gap-2`}
                             >
-                                <FaLinkedin className="text-[var(--career-text-subtle)]" />{" "}
+                                <FaLinkedin className="text-(--career-text-subtle)" />{" "}
                                 LinkedIn
                             </label>
                             <input
@@ -237,7 +262,7 @@ export default function ApplicationForm({
                             <label
                                 className={`${labelClass} flex items-center gap-2`}
                             >
-                                <FaGlobe className="text-[var(--career-text-subtle)]" /> Portfolio
+                                <FaGlobe className="text-(--career-text-subtle)" /> Portfolio
                             </label>
                             <input
                                 value={formData.portfolio}
@@ -304,12 +329,20 @@ export default function ApplicationForm({
             onSubmit={handleSubmit}
             className="career-card p-6 md:p-10"
         >
-            <p className="mb-1 text-sm font-medium text-[var(--career-text-muted)]">
+            <p className="mb-1 text-sm font-medium text-(--career-text-muted)">
                 Applying for
             </p>
-            <h2 className="mb-8 text-2xl font-medium text-[var(--career-text)]">
+            <h2 className="mb-2 text-2xl font-medium text-(--career-text)">
                 {jobTitle}
             </h2>
+            {draftLoaded && (
+                <p className="mb-8 text-sm text-(--career-text-muted)">
+                    Your details were restored from your last application. Update
+                    anything that has changed, attach your resume again, and write
+                    a new cover letter for this role.
+                </p>
+            )}
+            {!draftLoaded && <div className="mb-8" />}
 
             <div className="mb-8 flex gap-2">
                 {sections.map((s, i) => (

@@ -2,29 +2,11 @@
 
 import PageShell from "@/components/PageShell";
 import SectionHeading from "@/components/SectionHeading";
-import Image from "next/image";
+import TechIcon from "@/components/TechIcon";
+import { TECH_STACK, TECH_STACK_STATS } from "@/lib/techStack";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { FiArrowRight } from "react-icons/fi";
-
-const team = [
-    { name: "Ayush Maurya", role: "Founder & CEO", image: "/team/ayush.png" },
-    { name: "Adarsh", role: "Tech Lead", image: "/team/adarsh.jpg" },
-    { name: "Harshit", role: "Developer", image: "/team/harshit.jpg" },
-    { name: "Prateek", role: "Developer", image: "/team/prateek.jpg" },
-    { name: "Vikash", role: "Developer", image: "/team/vikash.jpg" },
-    { name: "Anshu", role: "Designer", image: "/team/anshu.jpg" },
-];
-
-const techStack = [
-    "react.png",
-    "nextjs.png",
-    "typescript.png",
-    "nodejs.png",
-    "mongodb.png",
-    "tailwind.svg",
-    "python.png",
-    "docker.png",
-];
 
 const benefits = [
     "Competitive compensation packages",
@@ -36,6 +18,13 @@ const benefits = [
 ];
 
 export default function CulturePage() {
+    const [activeCategory, setActiveCategory] = useState<string>("all");
+
+    const visibleCategories = useMemo(() => {
+        if (activeCategory === "all") return TECH_STACK;
+        return TECH_STACK.filter((cat) => cat.id === activeCategory);
+    }, [activeCategory]);
+
     return (
         <PageShell>
             <div className="border-b border-[var(--career-border)] bg-[var(--career-bg-subtle)]">
@@ -66,54 +55,87 @@ export default function CulturePage() {
                 </section>
 
                 <section className="mb-20">
-                    <h2 className="mb-8 text-xl font-medium text-[var(--career-text)]">
-                        Leadership & team
-                    </h2>
-                    <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
-                        {team.map((member) => (
-                            <div
-                                key={member.name}
-                                className="career-card p-4 text-center"
-                            >
-                                <div className="relative mx-auto mb-3 h-20 w-20 overflow-hidden rounded-full border border-[var(--career-border)]">
-                                    <Image
-                                        src={member.image}
-                                        alt={member.name}
-                                        fill
-                                        className="object-cover"
-                                    />
-                                </div>
-                                <h3 className="text-sm font-medium text-[var(--career-text)]">
-                                    {member.name}
-                                </h3>
-                                <p className="text-xs text-[var(--career-text-muted)]">
-                                    {member.role}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                <section className="mb-20">
-                    <h2 className="mb-8 text-xl font-medium text-[var(--career-text)]">
+                    <h2 className="mb-3 text-xl font-medium text-[var(--career-text)]">
                         Technology we use
                     </h2>
-                    <div className="career-card p-8">
-                        <div className="flex flex-wrap justify-center gap-8">
-                            {techStack.map((tech) => (
-                                <div
-                                    key={tech}
-                                    className="relative h-14 w-14 opacity-70 grayscale transition-all hover:opacity-100 hover:grayscale-0"
-                                >
-                                    <Image
-                                        src={`/tech/${tech}`}
-                                        alt={tech}
-                                        fill
-                                        className="object-contain"
-                                    />
+                    <p className="mb-4 max-w-2xl text-sm text-[var(--career-text-muted)]">
+                        The same stack we use across DigiCraft products —{" "}
+                        {TECH_STACK_STATS.domains} domains and{" "}
+                        {TECH_STACK_STATS.technologies}+ technologies from AI and
+                        data to mobile, cloud, and web.
+                    </p>
+                    <p className="mb-8 text-sm">
+                        <a
+                            href="https://digicraft.one/tech-stack"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="career-link font-medium"
+                        >
+                            View full stack on digicraft.one →
+                        </a>
+                    </p>
+
+                    <div className="mb-10 flex flex-wrap justify-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setActiveCategory("all")}
+                            className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                                activeCategory === "all"
+                                    ? "border-[var(--career-text)] bg-[var(--career-text)] text-white"
+                                    : "border-[var(--career-border)] bg-white text-[var(--career-text-muted)] hover:bg-[var(--career-bg-subtle)]"
+                            }`}
+                        >
+                            All domains
+                        </button>
+                        {TECH_STACK.map((category) => (
+                            <button
+                                key={category.id}
+                                type="button"
+                                onClick={() => setActiveCategory(category.id)}
+                                className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                                    activeCategory === category.id
+                                        ? "border-[var(--career-text)] bg-[var(--career-text)] text-white"
+                                        : "border-[var(--career-border)] bg-white text-[var(--career-text-muted)] hover:bg-[var(--career-bg-subtle)]"
+                                }`}
+                            >
+                                {category.category}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="space-y-12">
+                        {visibleCategories.map((group) => (
+                            <div key={group.id} id={`tech-${group.id}`}>
+                                <h3 className="mb-1 text-base font-medium text-[var(--career-text)]">
+                                    {group.category}
+                                </h3>
+                                <p className="mb-5 text-sm text-[var(--career-text-muted)]">
+                                    {group.description}
+                                </p>
+                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                                    {group.techs.map((tech) => (
+                                        <div
+                                            key={tech.name}
+                                            className="career-card flex flex-col items-center gap-2 p-4 text-center"
+                                        >
+                                            <TechIcon
+                                                name={tech.name}
+                                                icon={tech.icon}
+                                                size={40}
+                                            />
+                                            <span className="text-xs font-medium leading-tight text-[var(--career-text)]">
+                                                {tech.name}
+                                            </span>
+                                            {tech.description && (
+                                                <span className="line-clamp-2 text-[10px] leading-snug text-[var(--career-text-subtle)]">
+                                                    {tech.description}
+                                                </span>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ))}
                     </div>
                 </section>
 
@@ -124,10 +146,15 @@ export default function CulturePage() {
                     <p className="mb-6 text-[var(--career-text-muted)]">
                         See where your skills fit and apply directly online.
                     </p>
-                    <Link href="/jobs" className="career-btn-primary">
-                        View open roles
-                        <FiArrowRight />
-                    </Link>
+                    <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+                        <Link href="/jobs" className="career-btn-primary">
+                            View open roles
+                            <FiArrowRight />
+                        </Link>
+                        <Link href="/about" className="career-btn-secondary">
+                            About the company
+                        </Link>
+                    </div>
                 </div>
             </div>
         </PageShell>

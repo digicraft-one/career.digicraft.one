@@ -53,7 +53,7 @@ const EMAIL_WRAPPER = (content: string) => `<!DOCTYPE html>
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f4f4;">
 <tr><td align="center" style="padding:20px 0;">
 <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
-<tr><td style="background:linear-gradient(135deg,#9333ea 0%,#ec4899 100%);padding:25px 20px;text-align:center;border-radius:8px 8px 0 0;">
+<tr><td style="background:#202124;padding:25px 20px;text-align:center;border-radius:8px 8px 0 0;">
 <h1 style="color:#fff;font-size:22px;margin:0;">DigiCraft Careers</h1>
 </td></tr>
 <tr><td style="padding:25px 20px;">${content}</td></tr>
@@ -98,14 +98,43 @@ export async function sendApplicationConfirmationEmail(data: {
     jobTitle: string;
 }) {
     const content = `
-<h2 style="color:#9333ea;margin:0 0 12px;">Thank you for applying!</h2>
-<p style="color:#666;">Hi <strong>${data.name}</strong>,</p>
-<p style="color:#666;">We've received your application for <strong>${data.jobTitle}</strong>. Our team will review it and get back to you soon.</p>
-<p style="color:#666;">Best regards,<br/>DigiCraft Hiring Team</p>`;
+<h2 style="color:#202124;margin:0 0 12px;">Thank you for applying</h2>
+<p style="color:#5f6368;">Hi <strong>${data.name}</strong>,</p>
+<p style="color:#5f6368;">We've received your application for <strong>${data.jobTitle}</strong>. Our hiring team will review it and contact you if your profile is a match for the next steps.</p>
+<p style="color:#5f6368;">Best regards,<br/>DigiCraft Hiring Team</p>`;
 
     return sendEmail({
         to: [{ email: data.email, name: data.name }],
-        subject: `Application Received – ${data.jobTitle} | DigiCraft Careers`,
+        subject: `Application received – ${data.jobTitle} | DigiCraft Careers`,
+        htmlContent: EMAIL_WRAPPER(content),
+    });
+}
+
+export async function sendNewApplicationAdminEmail(data: {
+    name: string;
+    email: string;
+    phone: string;
+    jobTitle: string;
+    primarySkills: string;
+    resumeUrl: string;
+    adminLink: string;
+}) {
+    const adminEmail =
+        env("ADMIN_NOTIFICATION_EMAIL") || "hello@digicraft.one";
+
+    const content = `
+<h2 style="color:#202124;margin:0 0 12px;">New career application</h2>
+<p style="color:#5f6368;"><strong>${data.name}</strong> applied for <strong>${data.jobTitle}</strong>.</p>
+<table style="width:100%;border-collapse:collapse;margin:16px 0;">
+<tr><td style="padding:8px 0;color:#80868b;font-size:14px;">Email</td><td style="padding:8px 0;color:#202124;">${data.email}</td></tr>
+<tr><td style="padding:8px 0;color:#80868b;font-size:14px;">Phone</td><td style="padding:8px 0;color:#202124;">${data.phone}</td></tr>
+<tr><td style="padding:8px 0;color:#80868b;font-size:14px;">Skills</td><td style="padding:8px 0;color:#202124;">${data.primarySkills}</td></tr>
+</table>
+<p style="margin:16px 0;"><a href="${data.resumeUrl}" style="color:#1a73e8;">View resume</a> · <a href="${data.adminLink}" style="color:#1a73e8;">Review in admin</a></p>`;
+
+    return sendEmail({
+        to: [{ email: adminEmail, name: "DigiCraft Hiring" }],
+        subject: `New application: ${data.jobTitle} – ${data.name}`,
         htmlContent: EMAIL_WRAPPER(content),
     });
 }

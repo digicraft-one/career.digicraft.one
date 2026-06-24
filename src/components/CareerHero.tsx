@@ -27,8 +27,11 @@ export default function CareerHero() {
                         <Link href="/culture" className="career-btn-secondary">
                             Life at DigiCraft
                         </Link>
+                        <Link href="/about" className="career-btn-secondary">
+                            About the company
+                        </Link>
                     </div>
-                    <div className="mt-12 flex flex-wrap gap-3">
+                    <div className="hero-badges mt-12">
                         <span className="career-badge">Remote-friendly</span>
                         <span className="career-badge">Growth-focused</span>
                         <span className="career-badge">Product-driven</span>
