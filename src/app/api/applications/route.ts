@@ -6,7 +6,6 @@ import {
     sendExternalNotification,
     sendNewApplicationAdminEmail,
 } from "@/lib/email/brevo";
-import { buildResumeDownloadUrl } from "@/lib/resume";
 import { sendApplicationNotification } from "@/lib/telegram/telegram";
 import { Application } from "@/schemas/Application";
 import { Job } from "@/schemas/Job";
@@ -114,10 +113,7 @@ export async function POST(req: NextRequest) {
                 phone: body.phone,
                 jobTitle: job.title,
                 primarySkills: body.primarySkills,
-                resume: buildResumeDownloadUrl(
-                    body.resume.publicId,
-                    body.name
-                ),
+                resume: adminLink,
             });
         } catch (e) {
             console.error("Telegram notification failed:", e);
@@ -146,10 +142,7 @@ export async function POST(req: NextRequest) {
                 phone: body.phone,
                 jobTitle: job.title,
                 primarySkills: body.primarySkills,
-                resumeUrl: buildResumeDownloadUrl(
-                    body.resume.publicId,
-                    body.name
-                ),
+                resumeUrl: adminLink,
                 adminLink,
             });
             if (!adminEmailResult.success) {

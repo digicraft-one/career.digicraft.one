@@ -269,6 +269,7 @@ export default function AdminApplicationsPage() {
                                             </a>
                                             <a
                                                 href={`/api/applications/${app._id}/resume`}
+                                                download={`${app.name.replace(/[^\w\s-]/g, "").trim() || "Applicant"}-Resume.pdf`}
                                                 className="inline-flex items-center gap-2 text-sm text-purple-600 hover:underline"
                                             >
                                                 <Download className="w-4 h-4" />
