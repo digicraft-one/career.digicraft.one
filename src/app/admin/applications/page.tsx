@@ -28,6 +28,7 @@ import { Application, ApplicationStatus, Job } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import {
     ArrowLeft,
+    Download,
     ExternalLink,
     Mail,
     Phone,
@@ -255,16 +256,25 @@ export default function AdminApplicationsPage() {
                                         {app.primarySkills}
                                     </p>
 
-                                    {app.resume?.url && (
-                                        <a
-                                            href={app.resume.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-2 text-sm text-purple-600 hover:underline"
-                                        >
-                                            <ExternalLink className="w-4 h-4" />
-                                            View Resume
-                                        </a>
+                                    {app.resume?.publicId && (
+                                        <div className="flex flex-wrap gap-4">
+                                            <a
+                                                href={`/api/applications/${app._id}/resume?view=1`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 text-sm text-purple-600 hover:underline"
+                                            >
+                                                <ExternalLink className="w-4 h-4" />
+                                                View Resume
+                                            </a>
+                                            <a
+                                                href={`/api/applications/${app._id}/resume`}
+                                                className="inline-flex items-center gap-2 text-sm text-purple-600 hover:underline"
+                                            >
+                                                <Download className="w-4 h-4" />
+                                                Download PDF
+                                            </a>
+                                        </div>
                                     )}
 
                                     <Select

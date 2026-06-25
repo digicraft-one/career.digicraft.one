@@ -1,6 +1,11 @@
 import { errorResponse, successResponse } from "@/lib/apiResponse";
 import { authOptions } from "@/lib/auth/options";
 import cloudinary from "@/lib/cloudinary";
+import {
+    isPdfUpload,
+    resumeUploadFolder,
+    resumeUploadPublicId,
+} from "@/lib/resume";
 import { UploadApiErrorResponse, UploadApiResponse } from "cloudinary";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -29,8 +34,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             });
 
         const isResume = type === "resume";
+        const fileName = file instanceof File ? file.name : undefined;
+
         if (isResume) {
-            if (file.type !== "application/pdf")
+            if (!isPdfUpload(file, fileName))
                 return NextResponse.json(
                     errorResponse("Resume must be a PDF file"),
                     { status: 400 }
@@ -44,13 +51,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
-        const folder = isResume ? "digicraft-careers/resumes" : "digicraft-careers";
+        const folder = isResume ? resumeUploadFolder() : "digicraft-careers";
 
         return new Promise((resolve) => {
             const stream = cloudinary.uploader.upload_stream(
                 {
                     folder,
                     resource_type: isResume ? "raw" : "auto",
+                    ...(isResume
+                        ? { public_id: resumeUploadPublicId() }
+                        : {}),
                 },
                 (
                     error: UploadApiErrorResponse | undefined,
