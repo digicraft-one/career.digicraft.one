@@ -1,5 +1,6 @@
 import Providers from "@/components/Providers";
 import { Toaster } from "@/components/ui/sonner";
+import { DIGICRAFT_LOGO_PATH } from "@/lib/branding";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ReactNode } from "react";
@@ -15,14 +16,25 @@ export const metadata: Metadata = {
         default: "DigiCraft Careers",
         template: "%s | DigiCraft Careers",
     },
-        description:
+    description:
         "Explore career opportunities at DigiCraft. Join our team building reliable, production-grade digital products.",
+    icons: {
+        icon: [{ url: DIGICRAFT_LOGO_PATH, type: "image/png" }],
+        apple: DIGICRAFT_LOGO_PATH,
+    },
     openGraph: {
         title: "DigiCraft Careers",
         description: "Build the future with DigiCraft",
         url: siteUrl,
         siteName: "DigiCraft Careers",
-        images: [{ url: "/preview.png" }],
+        images: [
+            {
+                url: DIGICRAFT_LOGO_PATH,
+                width: 512,
+                height: 512,
+                alt: "DigiCraft",
+            },
+        ],
     },
 };
 

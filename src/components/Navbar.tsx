@@ -1,5 +1,7 @@
 "use client";
 
+import DigiCraftLogo from "@/components/shared/DigiCraftLogo";
+import { DIGICRAFT_LOGO_PATH } from "@/lib/branding";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -17,7 +19,7 @@ const productDropdownItems = [
     {
         name: "DigiCraft",
         href: "https://digicraft.one",
-        logo: "/logo.svg",
+        logo: DIGICRAFT_LOGO_PATH,
     },
     {
         name: "Marketplace",
@@ -92,18 +94,16 @@ export default function Navbar() {
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="flex h-16 items-center justify-between">
                     <div className="flex items-center gap-6">
-                        <Link href="/" className="flex items-center gap-3">
-                            <Image
-                                src="/logo.svg"
-                                alt="DigiCraft Careers"
-                                width={40}
-                                height={40}
-                                className="h-9 w-auto"
-                                priority
-                            />
-                            <span className="hidden text-sm font-medium text-[var(--career-text)] sm:block">
-                                Careers
-                            </span>
+                        <Link href="/" className="flex items-center gap-2.5">
+                            <DigiCraftLogo size={36} priority />
+                            <div className="leading-tight hidden sm:block">
+                                <p className="text-sm font-semibold text-[var(--career-text)] leading-none">
+                                    DigiCraft
+                                </p>
+                                <p className="text-[11px] font-medium text-purple-600 leading-none mt-0.5">
+                                    Careers
+                                </p>
+                            </div>
                         </Link>
                         <div className="relative">
                             <div
@@ -145,7 +145,7 @@ export default function Navbar() {
                                                         alt={item.name}
                                                         width={20}
                                                         height={20}
-                                                        className="h-5 w-5 object-contain"
+                                                        className={`h-5 w-5 object-contain ${item.name === "DigiCraft" ? "rounded-full" : ""}`}
                                                     />
                                                     <span className="font-medium">
                                                         {item.name}

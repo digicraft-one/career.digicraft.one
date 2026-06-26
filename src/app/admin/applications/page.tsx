@@ -1,22 +1,18 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { AdminApplicationsSkeleton, Skeleton } from "@/components/skeletons";
 import { fetchAPI } from "@/lib/api";
 import { Application, ApplicationStatus, Job } from "@/lib/types";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import ApplicationCard from "../_components/ApplicationCard";
+import ApplicationDetailDialog from "../_components/ApplicationDetailDialog";
+import ApplicationFiltersBar, {
+    DEFAULT_APPLICATION_FILTERS,
+    filterApplications,
+} from "../_components/ApplicationFilters";
 
 export default function AdminApplicationsPage() {
     const [applications, setApplications] = useState<Application[] | null>(
@@ -24,8 +20,8 @@ export default function AdminApplicationsPage() {
     );
     const [jobs, setJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filterJob, setFilterJob] = useState("all");
-    const [filterStatus, setFilterStatus] = useState("all");
+    const [filters, setFilters] = useState(DEFAULT_APPLICATION_FILTERS);
+    const [detailAppId, setDetailAppId] = useState<string | null>(null);
     const [formState, setFormState] = useState<
         Record<string, { status: ApplicationStatus; notes: string[]; newNote: string }>
     >({});
@@ -57,11 +53,15 @@ export default function AdminApplicationsPage() {
         load();
     }, []);
 
-    const filtered = applications?.filter((a) => {
-        if (filterJob !== "all" && a.jobId !== filterJob) return false;
-        if (filterStatus !== "all" && a.status !== filterStatus) return false;
-        return true;
-    });
+    const filtered = useMemo(
+        () => filterApplications(applications ?? [], filters),
+        [applications, filters]
+    );
+
+    const detailApp = useMemo(
+        () => applications?.find((a) => a._id === detailAppId) ?? null,
+        [applications, detailAppId]
+    );
 
     const handleSave = async (id: string) => {
         const state = formState[id];
@@ -91,6 +91,7 @@ export default function AdminApplicationsPage() {
         try {
             await fetchAPI(`/applications/${id}`, { method: "DELETE" });
             setApplications((prev) => prev?.filter((a) => a._id !== id) || []);
+            setDetailAppId(null);
             toast.success("Deleted");
         } catch {
             toast.error("Failed to delete");
@@ -111,112 +112,85 @@ export default function AdminApplicationsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50">
-            <main className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto space-y-8">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link href="/admin">
-                            <Button variant="outline" size="icon">
-                                <ArrowLeft className="w-4 h-4" />
-                            </Button>
-                        </Link>
-                        <div>
-                            <h1 className="text-3xl font-bold">Applications</h1>
-                            <p className="text-slate-600">
-                                Review full applicant details, update status, and
-                                manage hiring
-                            </p>
-                        </div>
+        <div className="space-y-5">
+            <AdminPageHeader
+                title="Applications"
+                description="Search, filter, and open any applicant for full details"
+            />
+
+            {loading ? (
+                <div className="space-y-3">
+                    <Skeleton className="h-10 w-full max-w-xl" />
+                    <div className="flex flex-wrap gap-2">
+                        <Skeleton className="h-10 w-40" />
+                        <Skeleton className="h-10 w-36" />
+                        <Skeleton className="h-10 w-36" />
                     </div>
                 </div>
+            ) : (
+                <ApplicationFiltersBar
+                    filters={filters}
+                    onChange={setFilters}
+                    jobs={jobs}
+                    totalCount={applications?.length ?? 0}
+                    filteredCount={filtered.length}
+                />
+            )}
 
-                {loading ? (
-                    <div className="flex flex-wrap gap-4">
-                        <Skeleton className="h-10 w-48" />
-                        <Skeleton className="h-10 w-48" />
-                    </div>
-                ) : (
-                    <div className="flex flex-wrap gap-4">
-                        <Select value={filterJob} onValueChange={setFilterJob}>
-                            <SelectTrigger className="w-48">
-                                <SelectValue placeholder="Filter by job" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Jobs</SelectItem>
-                                {jobs.map((j) => (
-                                    <SelectItem key={j._id} value={j._id}>
-                                        {j.title}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Select
-                            value={filterStatus}
-                            onValueChange={setFilterStatus}
-                        >
-                            <SelectTrigger className="w-48">
-                                <SelectValue placeholder="Filter by status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Statuses</SelectItem>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="shortlisted">
-                                    Shortlisted
-                                </SelectItem>
-                                <SelectItem value="selected">Selected</SelectItem>
-                                <SelectItem value="declined">Declined</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                )}
+            {loading ? (
+                <AdminApplicationsSkeleton />
+            ) : filtered.length === 0 ? (
+                <Card>
+                    <CardContent className="p-10 text-center text-slate-500 text-sm">
+                        No applications match your filters
+                    </CardContent>
+                </Card>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {filtered.map((app) => (
+                        <ApplicationCard
+                            key={app._id}
+                            app={app}
+                            onViewDetails={() => setDetailAppId(app._id)}
+                        />
+                    ))}
+                </div>
+            )}
 
-                {loading ? (
-                    <AdminApplicationsSkeleton />
-                ) : filtered?.length === 0 ? (
-                    <Card>
-                        <CardContent className="p-12 text-center text-slate-500">
-                            No applications found
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                        {filtered?.map((app) => (
-                            <ApplicationCard
-                                key={app._id}
-                                app={app}
-                                formState={
-                                    formState[app._id] || {
-                                        status: app.status,
-                                        notes: app.notes || [],
-                                        newNote: "",
-                                    }
-                                }
-                                onStatusChange={(status) =>
-                                    setFormState((prev) => ({
-                                        ...prev,
-                                        [app._id]: {
-                                            ...prev[app._id],
-                                            status,
-                                        },
-                                    }))
-                                }
-                                onNewNoteChange={(value) =>
-                                    setFormState((prev) => ({
-                                        ...prev,
-                                        [app._id]: {
-                                            ...prev[app._id],
-                                            newNote: value,
-                                        },
-                                    }))
-                                }
-                                onAddNote={() => addNote(app._id)}
-                                onSave={() => handleSave(app._id)}
-                                onDelete={() => handleDelete(app._id)}
-                            />
-                        ))}
-                    </div>
-                )}
-            </main>
+            <ApplicationDetailDialog
+                open={!!detailAppId}
+                onClose={() => setDetailAppId(null)}
+                app={detailApp}
+                formState={
+                    detailAppId && formState[detailAppId]
+                        ? formState[detailAppId]
+                        : {
+                              status: detailApp?.status ?? "pending",
+                              notes: detailApp?.notes ?? [],
+                              newNote: "",
+                          }
+                }
+                onStatusChange={(status) =>
+                    detailAppId &&
+                    setFormState((prev) => ({
+                        ...prev,
+                        [detailAppId]: { ...prev[detailAppId], status },
+                    }))
+                }
+                onNewNoteChange={(value) =>
+                    detailAppId &&
+                    setFormState((prev) => ({
+                        ...prev,
+                        [detailAppId]: {
+                            ...prev[detailAppId],
+                            newNote: value,
+                        },
+                    }))
+                }
+                onAddNote={() => detailAppId && addNote(detailAppId)}
+                onSave={() => detailAppId && handleSave(detailAppId)}
+                onDelete={() => detailAppId && handleDelete(detailAppId)}
+            />
         </div>
     );
 }

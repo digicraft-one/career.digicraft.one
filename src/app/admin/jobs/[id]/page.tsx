@@ -1,10 +1,9 @@
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import JobForm from "../../_components/JobForm";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { connectToDB } from "@/lib/db/mongoose";
 import { Job } from "@/schemas/Job";
 import { Job as JobType } from "@/lib/types";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 interface Props {
@@ -38,24 +37,16 @@ export default async function EditJobPage({ params }: Props) {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50">
-            <main className="px-4 sm:px-6 lg:px-8 py-8 max-w-4xl mx-auto space-y-8">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold">Edit Job</h1>
-                        <p className="text-slate-600">{job.title}</p>
-                    </div>
-                    <Link href="/admin/jobs">
-                        <Button variant="outline">
-                            <ArrowLeft className="w-4 h-4 mr-2" />
-                            Back
-                        </Button>
-                    </Link>
-                </div>
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-8">
+        <div className="space-y-5">
+            <AdminPageHeader
+                title="Edit job"
+                description={job.title}
+            />
+            <Card className="bg-white">
+                <CardContent className="p-5 sm:p-6">
                     <JobForm initialData={jobData} />
-                </div>
-            </main>
+                </CardContent>
+            </Card>
         </div>
     );
 }

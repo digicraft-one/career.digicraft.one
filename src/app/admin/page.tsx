@@ -1,16 +1,11 @@
-import LogoutButton from "@/components/shared/LogoutButton";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { authOptions } from "@/lib/auth/options";
 import { connectToDB } from "@/lib/db/mongoose";
 import { Application } from "@/schemas/Application";
 import { Job } from "@/schemas/Job";
-import {
-    Briefcase,
-    ChevronRight,
-    FileUser,
-    Plus,
-} from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -36,160 +31,118 @@ async function getStats() {
     };
 }
 
+const STATUS_STYLES: Record<string, string> = {
+    pending: "bg-amber-100 text-amber-800",
+    shortlisted: "bg-blue-100 text-blue-800",
+    selected: "bg-green-100 text-green-800",
+    declined: "bg-red-100 text-red-800",
+};
+
 export default async function AdminDashboardPage() {
     const session = await getServerSession(authOptions);
     if (!session) redirect("/login");
 
     const stats = await getStats();
 
+    const statItems = [
+        {
+            label: "Jobs",
+            value: stats.totalJobs,
+            href: "/admin/jobs",
+        },
+        {
+            label: "Published",
+            value: stats.publishedJobs,
+            href: "/admin/jobs",
+            accent: "text-green-600",
+        },
+        {
+            label: "Applications",
+            value: stats.totalApplications,
+            href: "/admin/applications",
+        },
+        {
+            label: "Pending review",
+            value: stats.pendingApplications,
+            href: "/admin/applications",
+            accent: "text-amber-600",
+        },
+    ];
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50">
-            <main className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto space-y-8">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-900 to-pink-600 bg-clip-text text-transparent">
-                            Careers Admin
-                        </h1>
-                        <p className="text-slate-600 text-lg mt-2">
-                            Manage job listings and applications
-                        </p>
-                    </div>
-                    <LogoutButton />
-                </div>
+        <div className="space-y-5">
+            <AdminPageHeader
+                title="Dashboard"
+                description={`Welcome back${session.user?.name ? `, ${session.user.name}` : ""}`}
+            />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm text-slate-500">
-                                Total Jobs
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-3xl font-bold">{stats.totalJobs}</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm text-slate-500">
-                                Published
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-3xl font-bold text-green-600">
-                                {stats.publishedJobs}
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm text-slate-500">
-                                Applications
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-3xl font-bold">
-                                {stats.totalApplications}
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm text-slate-500">
-                                Pending Review
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-3xl font-bold text-amber-600">
-                                {stats.pendingApplications}
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Link href="/admin/jobs/new">
-                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                            <CardContent className="p-6 flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 text-white">
-                                    <Plus className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold">Post New Job</h3>
-                                    <p className="text-sm text-slate-500">
-                                        Create a job listing
-                                    </p>
-                                </div>
-                                <ChevronRight className="ml-auto text-slate-400" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {statItems.map((item) => (
+                    <Link key={item.label} href={item.href}>
+                        <Card className="bg-white hover:shadow-sm transition-shadow h-full">
+                            <CardContent className="p-3">
+                                <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">
+                                    {item.label}
+                                </p>
+                                <p
+                                    className={`text-xl font-bold mt-0.5 ${item.accent ?? "text-slate-900"}`}
+                                >
+                                    {item.value}
+                                </p>
                             </CardContent>
                         </Card>
                     </Link>
-                    <Link href="/admin/jobs">
-                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                            <CardContent className="p-6 flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
-                                    <Briefcase className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold">Manage Jobs</h3>
-                                    <p className="text-sm text-slate-500">
-                                        Edit, publish, or close roles
-                                    </p>
-                                </div>
-                                <ChevronRight className="ml-auto text-slate-400" />
-                            </CardContent>
-                        </Card>
-                    </Link>
-                    <Link href="/admin/applications">
-                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                            <CardContent className="p-6 flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white">
-                                    <FileUser className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold">Applications</h3>
-                                    <p className="text-sm text-slate-500">
-                                        Review and approve hiring
-                                    </p>
-                                </div>
-                                <ChevronRight className="ml-auto text-slate-400" />
-                            </CardContent>
-                        </Card>
-                    </Link>
-                </div>
+                ))}
+            </div>
 
-                {stats.recentApplications.length > 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Recent Applications</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <ul className="space-y-3">
-                                {stats.recentApplications.map((app) => (
-                                    <li
-                                        key={String(app._id)}
-                                        className="flex justify-between items-center py-2 border-b last:border-0"
+            {stats.recentApplications.length > 0 && (
+                <Card className="bg-white">
+                    <CardContent className="p-4">
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                            <h2 className="text-sm font-semibold text-slate-900">
+                                Recent applications
+                            </h2>
+                            <Link href="/admin/applications">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 text-xs text-purple-700"
+                                >
+                                    View all
+                                    <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                                </Button>
+                            </Link>
+                        </div>
+                        <ul className="divide-y divide-slate-100">
+                            {stats.recentApplications.map((app) => (
+                                <li key={String(app._id)}>
+                                    <Link
+                                        href="/admin/applications"
+                                        className="flex items-center justify-between gap-3 py-2 hover:bg-slate-50 -mx-2 px-2 rounded-md transition-colors"
                                     >
-                                        <div>
-                                            <p className="font-medium">{app.name}</p>
-                                            <p className="text-sm text-slate-500">
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium text-slate-900 truncate">
+                                                {app.name}
+                                            </p>
+                                            <p className="text-xs text-slate-500 truncate">
                                                 {app.jobTitle}
                                             </p>
                                         </div>
-                                        <span className="text-xs px-2 py-1 rounded-full bg-slate-100 capitalize">
+                                        <span
+                                            className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full capitalize font-medium ${
+                                                STATUS_STYLES[app.status] ??
+                                                "bg-slate-100 text-slate-700"
+                                            }`}
+                                        >
                                             {app.status}
                                         </span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <Link href="/admin/applications">
-                                <Button variant="outline" className="mt-4">
-                                    View All Applications
-                                </Button>
-                            </Link>
-                        </CardContent>
-                    </Card>
-                )}
-            </main>
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 }

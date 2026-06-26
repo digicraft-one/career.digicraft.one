@@ -1,6 +1,7 @@
 "use client";
 
 import { LoginFormSkeleton } from "@/components/skeletons";
+import DigiCraftLogo from "@/components/shared/DigiCraftLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AlertCircle, Loader2, Lock, Shield, User } from "lucide-react";
+import { AlertCircle, Loader2, Lock, User } from "lucide-react";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -61,8 +62,8 @@ export default function LoginPage() {
                     />
                 )}
                 <CardHeader className="pb-6 text-center">
-                    <div className="mx-auto mb-4 w-fit rounded-full bg-gradient-to-br from-purple-500 to-pink-600 p-3">
-                        <Shield className="h-8 w-8 text-white" />
+                    <div className="mx-auto mb-4 w-fit">
+                        <DigiCraftLogo size={56} priority />
                     </div>
                     <CardTitle className="text-2xl font-bold text-slate-900">
                         Careers Admin
