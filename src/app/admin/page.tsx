@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth/options";
 import { connectToDB } from "@/lib/db/mongoose";
 import { Application } from "@/schemas/Application";
 import { Job } from "@/schemas/Job";
+import { STATUS_COLORS, STATUS_LABELS } from "@/lib/hiring/constants";
 import { ChevronRight } from "lucide-react";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
@@ -19,7 +20,7 @@ async function getStats() {
 
     const allApplications = await Application.countDocuments();
     const pendingApplications = await Application.countDocuments({
-        status: "pending",
+        status: { $in: ["pending", "under_review"] },
     });
 
     return {
@@ -30,13 +31,6 @@ async function getStats() {
         recentApplications: applications,
     };
 }
-
-const STATUS_STYLES: Record<string, string> = {
-    pending: "bg-amber-100 text-amber-800",
-    shortlisted: "bg-blue-100 text-blue-800",
-    selected: "bg-green-100 text-green-800",
-    declined: "bg-red-100 text-red-800",
-};
 
 export default async function AdminDashboardPage() {
     const session = await getServerSession(authOptions);
@@ -129,12 +123,16 @@ export default async function AdminDashboardPage() {
                                             </p>
                                         </div>
                                         <span
-                                            className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full capitalize font-medium ${
-                                                STATUS_STYLES[app.status] ??
+                                            className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                                                STATUS_COLORS[
+                                                    app.status as keyof typeof STATUS_COLORS
+                                                ] ??
                                                 "bg-slate-100 text-slate-700"
                                             }`}
                                         >
-                                            {app.status}
+                                            {STATUS_LABELS[
+                                                app.status as keyof typeof STATUS_LABELS
+                                            ] ?? app.status}
                                         </span>
                                     </Link>
                                 </li>

@@ -21,12 +21,19 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { buildSignHiringUserUrl } from "@/lib/signIntegration";
+import { Textarea } from "@/components/ui/textarea";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import {
+    ALL_APPLICATION_STATUSES,
+    STATUS_COLORS,
+    STATUS_LABELS,
+} from "@/lib/hiring/constants";
 import { Application, ApplicationStatus } from "@/lib/types";
+import { EmailTemplateId, InterviewMode } from "@/types/schemas";
 import { format, formatDistanceToNow } from "date-fns";
 import {
     Briefcase,
-    Calendar,
+    ChevronDown,
     Download,
     ExternalLink,
     Github,
@@ -35,21 +42,14 @@ import {
     Mail,
     MapPin,
     Phone,
-    PenLine,
-    Save,
     Trash2,
     X,
 } from "lucide-react";
 import { createPortal } from "react-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import ApplicationQuickActions from "./ApplicationQuickActions";
+import ApplicationTimeline from "./ApplicationTimeline";
 import ExpandableText from "./ExpandableText";
-
-const STATUS_COLORS: Record<ApplicationStatus, string> = {
-    pending: "bg-yellow-100 text-yellow-800",
-    shortlisted: "bg-blue-100 text-blue-800",
-    selected: "bg-green-100 text-green-800",
-    declined: "bg-red-100 text-red-800",
-};
 
 const EXPERIENCE_LABELS: Record<string, string> = {
     junior: "Junior",
@@ -57,55 +57,6 @@ const EXPERIENCE_LABELS: Record<string, string> = {
     senior: "Senior",
     lead: "Lead",
 };
-
-function DetailItem({
-    label,
-    value,
-    icon,
-}: {
-    label: string;
-    value?: string;
-    icon?: React.ReactNode;
-}) {
-    const display = value?.trim();
-    return (
-        <div className="min-w-0">
-            <p className="text-xs font-medium text-slate-500 mb-0.5">{label}</p>
-            <div className="flex items-start gap-1.5 text-sm text-slate-700 break-words">
-                {icon && (
-                    <span className="shrink-0 text-slate-400 mt-0.5">{icon}</span>
-                )}
-                <span>{display || "—"}</span>
-            </div>
-        </div>
-    );
-}
-
-function ExternalLinkItem({
-    label,
-    href,
-    icon,
-}: {
-    label: string;
-    href?: string;
-    icon: React.ReactNode;
-}) {
-    const url = href?.trim();
-    if (!url) return null;
-
-    return (
-        <a
-            href={url.startsWith("http") ? url : `https://${url}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm text-purple-600 hover:underline break-all"
-        >
-            {icon}
-            {label}
-            <ExternalLink className="w-3 h-3 shrink-0" />
-        </a>
-    );
-}
 
 interface ApplicationDetailDialogProps {
     open: boolean;
@@ -115,12 +66,36 @@ interface ApplicationDetailDialogProps {
         status: ApplicationStatus;
         notes: string[];
         newNote: string;
+        declineReason: string;
+        notifyEmail: boolean;
     };
     onStatusChange: (status: ApplicationStatus) => void;
+    onDeclineReasonChange: (value: string) => void;
+    onNotifyEmailChange: (value: boolean) => void;
     onNewNoteChange: (value: string) => void;
     onAddNote: () => void;
-    onSave: () => void;
-    onDelete: () => void;
+    onSave: (sendEmail: boolean) => void;
+    onDelete: () => void | Promise<void>;
+    onScheduleInterview: (data: {
+        round: number;
+        scheduledAt: string;
+        timezone: string;
+        mode: InterviewMode;
+        meetingLink: string;
+        interviewer: string;
+        notes: string;
+        sendInvite: boolean;
+    }) => Promise<void>;
+    onSendInterviewInvite: (interviewId: string) => Promise<void>;
+    onSendEmail: (data: {
+        templateId: EmailTemplateId;
+        customBody?: string;
+    }) => Promise<void>;
+    onSaveContract: (data: {
+        contractUrl: string;
+        moveToOffer: boolean;
+    }) => Promise<void>;
+    loading?: boolean;
 }
 
 export default function ApplicationDetailDialog({
@@ -129,35 +104,55 @@ export default function ApplicationDetailDialog({
     app,
     formState,
     onStatusChange,
+    onDeclineReasonChange,
+    onNotifyEmailChange,
     onNewNoteChange,
     onAddNote,
     onSave,
     onDelete,
+    onScheduleInterview,
+    onSendInterviewInvite,
+    onSendEmail,
+    onSaveContract,
+    loading = false,
 }: ApplicationDetailDialogProps) {
+    const [detailsOpen, setDetailsOpen] = useState(false);
+    const [activityOpen, setActivityOpen] = useState(false);
+
     useEffect(() => {
         if (!open) return;
-
         const onKey = (e: KeyboardEvent) => {
-            if (e.key === "Escape") onClose();
+            if (e.key === "Escape" && !loading) onClose();
         };
-
         document.body.style.overflow = "hidden";
         window.addEventListener("keydown", onKey);
-
         return () => {
             document.body.style.overflow = "";
             window.removeEventListener("keydown", onKey);
         };
-    }, [open, onClose]);
+    }, [open, onClose, loading]);
+
+    useEffect(() => {
+        if (open) {
+            setDetailsOpen(false);
+            setActivityOpen(false);
+        }
+    }, [open, app?._id]);
 
     if (!open || !app || typeof document === "undefined") return null;
+
+    const emailCount = app.communications?.length ?? 0;
+    const activityCount =
+        (app.activities?.length ?? 0) + emailCount;
 
     return createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6">
             <button
                 type="button"
                 className="absolute inset-0 bg-black/50"
-                onClick={onClose}
+                onClick={() => {
+                    if (!loading) onClose();
+                }}
                 aria-label="Close dialog"
             />
 
@@ -165,8 +160,10 @@ export default function ApplicationDetailDialog({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="application-detail-title"
-                className="relative z-10 flex w-full max-w-3xl max-h-[92vh] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
+                aria-busy={loading}
+                className="relative z-10 flex w-full max-w-2xl max-h-[92vh] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
             >
+                {/* Header */}
                 <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4 shrink-0">
                     <div className="min-w-0">
                         <h2
@@ -179,289 +176,372 @@ export default function ApplicationDetailDialog({
                             <Briefcase className="w-3.5 h-3.5 shrink-0" />
                             {app.jobTitle}
                         </p>
+                        <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-500">
+                            <Badge
+                                className={
+                                    STATUS_COLORS[formState.status] ??
+                                    "bg-slate-100"
+                                }
+                            >
+                                {STATUS_LABELS[formState.status]}
+                            </Badge>
+                            <span>
+                                Applied{" "}
+                                {formatDistanceToNow(
+                                    new Date(app.createdAt),
+                                    { addSuffix: true }
+                                )}
+                            </span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                        <Badge
-                            className={`capitalize ${STATUS_COLORS[app.status]}`}
-                        >
-                            {app.status}
-                        </Badge>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={onClose}
-                        >
-                            <X className="w-4 h-4" />
-                        </Button>
-                    </div>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        disabled={loading}
+                        onClick={onClose}
+                    >
+                        <X className="w-4 h-4" />
+                    </Button>
                 </div>
 
-                <div className="overflow-y-auto flex-1 px-5 py-5 space-y-5">
-                    <p className="text-xs text-slate-400 flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5" />
-                        Applied{" "}
-                        {formatDistanceToNow(new Date(app.createdAt), {
-                            addSuffix: true,
-                        })}
-                        {" · "}
-                        {format(new Date(app.createdAt), "PPp")}
-                    </p>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <DetailItem
-                            label="Email"
-                            value={app.email}
-                            icon={<Mail className="w-4 h-4" />}
-                        />
-                        <DetailItem
-                            label="Phone"
-                            value={app.phone}
-                            icon={<Phone className="w-4 h-4" />}
-                        />
-                        <DetailItem
-                            label="Location"
-                            value={app.location}
-                            icon={<MapPin className="w-4 h-4" />}
-                        />
-                        <DetailItem
-                            label="Experience"
-                            value={
-                                EXPERIENCE_LABELS[app.experience] ||
-                                app.experience
-                            }
-                        />
-                        <DetailItem label="Can join" value={app.canJoin} />
-                        <DetailItem
-                            label="Last updated"
-                            value={format(new Date(app.updatedAt), "PPp")}
-                        />
+                <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
+                    {/* Contact strip */}
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
+                        <a
+                            href={`mailto:${app.email}`}
+                            className="inline-flex items-center gap-1 hover:text-purple-600"
+                        >
+                            <Mail className="w-3.5 h-3.5" />
+                            {app.email}
+                        </a>
+                        <span className="inline-flex items-center gap-1">
+                            <Phone className="w-3.5 h-3.5" />
+                            {app.phone}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                            <MapPin className="w-3.5 h-3.5" />
+                            {app.location}
+                        </span>
                     </div>
-
-                    <div className="grid grid-cols-1 gap-4">
-                        <ExpandableText
-                            label="Primary skills"
-                            text={app.primarySkills}
-                        />
-                        <ExpandableText
-                            label="Secondary skills"
-                            text={app.secondarySkills}
-                        />
-                        <ExpandableText
-                            label="Cover letter"
-                            text={app.coverLetter}
-                            collapsedLines={6}
-                            minCharsToCollapse={200}
-                        />
-                    </div>
-
-                    {(app.github?.trim() ||
-                        app.linkedin?.trim() ||
-                        app.portfolio?.trim()) && (
-                        <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1 border-t border-slate-100">
-                            <ExternalLinkItem
-                                label="GitHub"
-                                href={app.github}
-                                icon={<Github className="w-4 h-4" />}
-                            />
-                            <ExternalLinkItem
-                                label="LinkedIn"
-                                href={app.linkedin}
-                                icon={<Linkedin className="w-4 h-4" />}
-                            />
-                            <ExternalLinkItem
-                                label="Portfolio"
-                                href={app.portfolio}
-                                icon={<Globe className="w-4 h-4" />}
-                            />
-                        </div>
-                    )}
 
                     {app.resume?.publicId && (
-                        <div className="flex flex-wrap gap-4">
+                        <div className="flex gap-3 text-sm">
                             <a
                                 href={`/api/applications/${app._id}/resume?view=1`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 text-sm text-purple-600 hover:underline"
+                                className="text-purple-600 hover:underline inline-flex items-center gap-1"
                             >
-                                <ExternalLink className="w-4 h-4" />
-                                View Resume
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                View resume
                             </a>
                             <a
                                 href={`/api/applications/${app._id}/resume`}
-                                download={`${app.name.replace(/[^\w\s-]/g, "").trim() || "Applicant"}-Resume.pdf`}
-                                className="inline-flex items-center gap-2 text-sm text-purple-600 hover:underline"
+                                download
+                                className="text-purple-600 hover:underline inline-flex items-center gap-1"
                             >
-                                <Download className="w-4 h-4" />
-                                Download PDF
+                                <Download className="w-3.5 h-3.5" />
+                                Download
                             </a>
                         </div>
                     )}
 
-                    <div className="border-t border-slate-100 pt-4">
-                        <p className="text-xs font-medium text-slate-500 mb-2">
-                            DigiCraft Sign
+                    {/* Primary action */}
+                    <div className="rounded-lg border border-purple-100 bg-purple-50/40 p-4 space-y-3">
+                        <p className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
+                            Update status
                         </p>
-                        <a
-                            href={buildSignHiringUserUrl(app)}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        <Select
+                            value={formState.status}
+                            disabled={loading}
+                            onValueChange={(v) =>
+                                onStatusChange(v as ApplicationStatus)
+                            }
                         >
+                            <SelectTrigger className="bg-white">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {ALL_APPLICATION_STATUSES.map((status) => (
+                                    <SelectItem key={status} value={status}>
+                                        {STATUS_LABELS[status]}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        {formState.status === "declined" && (
+                            <Textarea
+                                value={formState.declineReason}
+                                disabled={loading}
+                                onChange={(e) =>
+                                    onDeclineReasonChange(e.target.value)
+                                }
+                                rows={2}
+                                className="bg-white text-sm"
+                                placeholder="Internal reason (not emailed)"
+                            />
+                        )}
+
+                        <label className="flex items-center gap-2 text-sm text-slate-600">
+                            <input
+                                type="checkbox"
+                                checked={formState.notifyEmail}
+                                disabled={loading}
+                                onChange={(e) =>
+                                    onNotifyEmailChange(e.target.checked)
+                                }
+                                className="rounded border-slate-300"
+                            />
+                            Email candidate about this update
+                        </label>
+
+                        <div className="flex gap-2">
                             <Button
                                 type="button"
-                                variant="outline"
-                                className="w-full sm:w-auto border-purple-200 text-purple-700 hover:bg-purple-50"
+                                className="flex-1 bg-purple-600 hover:bg-purple-700"
+                                disabled={loading}
+                                onClick={() =>
+                                    onSave(formState.notifyEmail)
+                                }
                             >
-                                <PenLine className="w-4 h-4 mr-2" />
-                                Add to DigiCraft Sign
+                                {loading ? (
+                                    <LoadingSpinner label="Updating…" />
+                                ) : (
+                                    "Update"
+                                )}
                             </Button>
-                        </a>
-                        <p className="text-[11px] text-slate-400 mt-1.5">
-                            Opens Sign admin with this applicant pre-filled as a
-                            hiring user
-                        </p>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={loading}
+                                        className="text-red-600 bg-white"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>
+                                            Delete application?
+                                        </AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This permanently removes{" "}
+                                            {app.name}&apos;s application.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>
+                                            Cancel
+                                        </AlertDialogCancel>
+                                        <AlertDialogAction
+                                            onClick={async (e) => {
+                                                e.preventDefault();
+                                                await onDelete();
+                                            }}
+                                        >
+                                            Delete
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
                     </div>
 
-                    {app.statusHistory?.length > 0 && (
-                        <div className="space-y-2 border-t border-slate-100 pt-4">
-                            <p className="text-xs font-medium text-slate-500">
-                                Status history
-                            </p>
-                            <ul className="space-y-2">
-                                {app.statusHistory.map((entry, i) => (
+                    {/* Quick tools */}
+                    <ApplicationQuickActions
+                        app={app}
+                        loading={loading}
+                        onScheduleInterview={onScheduleInterview}
+                        onSendInterviewInvite={onSendInterviewInvite}
+                        onSaveContract={onSaveContract}
+                        onSendEmail={onSendEmail}
+                    />
+
+                    {/* Notes */}
+                    <div className="space-y-2">
+                        <p className="text-xs font-medium text-slate-500">
+                            Notes
+                        </p>
+                        {formState.notes?.length > 0 ? (
+                            <ul className="space-y-1">
+                                {formState.notes.map((note, i) => (
                                     <li
                                         key={i}
-                                        className="text-xs bg-slate-50 rounded-md px-3 py-2 flex flex-wrap items-center gap-x-2 gap-y-1"
+                                        className="text-xs bg-slate-50 rounded px-2 py-1.5 text-slate-700"
                                     >
-                                        <Badge
-                                            variant="outline"
-                                            className="capitalize text-[10px]"
-                                        >
-                                            {entry.status}
-                                        </Badge>
-                                        <span className="text-slate-500">
-                                            {format(
-                                                new Date(entry.changedAt),
-                                                "PPp"
-                                            )}
-                                        </span>
-                                        {entry.changedBy && (
-                                            <span className="text-slate-400">
-                                                by {entry.changedBy}
-                                            </span>
-                                        )}
+                                        {note}
                                     </li>
                                 ))}
                             </ul>
-                        </div>
-                    )}
-
-                    <div className="space-y-2 border-t border-slate-100 pt-4">
-                        <p className="text-xs font-medium text-slate-500">
-                            Admin notes
-                        </p>
-                        {formState.notes?.length > 0 ? (
-                            formState.notes.map((note, i) => (
-                                <p
-                                    key={i}
-                                    className="text-xs bg-slate-50 p-2 rounded whitespace-pre-wrap break-words"
-                                >
-                                    {note}
-                                </p>
-                            ))
                         ) : (
-                            <p className="text-xs text-slate-400">
-                                No notes yet.
-                            </p>
+                            <p className="text-xs text-slate-400">No notes</p>
                         )}
+                        <div className="flex gap-2">
+                            <Input
+                                placeholder="Add a note…"
+                                value={formState.newNote}
+                                disabled={loading}
+                                onChange={(e) =>
+                                    onNewNoteChange(e.target.value)
+                                }
+                                className="bg-white h-9 text-sm"
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={loading}
+                                onClick={onAddNote}
+                                className="bg-white shrink-0"
+                            >
+                                Add
+                            </Button>
+                        </div>
                     </div>
-                </div>
 
-                <div className="border-t border-slate-200 px-5 py-4 space-y-3 shrink-0 bg-slate-50/80">
-                    <Select
-                        value={formState.status}
-                        onValueChange={(v) =>
-                            onStatusChange(v as ApplicationStatus)
-                        }
+                    {/* Applicant details — collapsed by default */}
+                    <CollapsibleBlock
+                        title="Application details"
+                        open={detailsOpen}
+                        onToggle={() => setDetailsOpen((v) => !v)}
                     >
-                        <SelectTrigger className="bg-white">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="shortlisted">
-                                Shortlisted
-                            </SelectItem>
-                            <SelectItem value="selected">
-                                Selected / Hired
-                            </SelectItem>
-                            <SelectItem value="declined">Declined</SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    <div className="flex gap-2">
-                        <Input
-                            placeholder="Add a note..."
-                            value={formState.newNote}
-                            onChange={(e) => onNewNoteChange(e.target.value)}
-                            className="bg-white"
-                        />
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={onAddNote}
-                            className="bg-white"
-                        >
-                            Add
-                        </Button>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <Button
-                            onClick={onSave}
-                            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600"
-                        >
-                            <Save className="w-4 h-4 mr-2" />
-                            Save & Notify
-                        </Button>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    className="text-red-600 bg-white"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                        Delete application?
-                                    </AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Remove {app.name}&apos;s application
-                                        permanently.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                        onClick={() => {
-                                            onDelete();
-                                            onClose();
-                                        }}
+                        <div className="space-y-3 pt-2 text-sm">
+                            <p className="text-slate-600">
+                                <span className="text-slate-500">
+                                    Experience:{" "}
+                                </span>
+                                {EXPERIENCE_LABELS[app.experience] ||
+                                    app.experience}
+                                {" · "}
+                                <span className="text-slate-500">
+                                    Can join:{" "}
+                                </span>
+                                {app.canJoin}
+                            </p>
+                            <ExpandableText
+                                label="Skills"
+                                text={`${app.primarySkills}${app.secondarySkills ? `\n${app.secondarySkills}` : ""}`}
+                            />
+                            <ExpandableText
+                                label="Cover letter"
+                                text={app.coverLetter}
+                                collapsedLines={4}
+                            />
+                            <div className="flex flex-wrap gap-3">
+                                {app.github?.trim() && (
+                                    <a
+                                        href={app.github}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-purple-600 hover:underline inline-flex items-center gap-1 text-xs"
                                     >
-                                        Delete
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </div>
+                                        <Github className="w-3.5 h-3.5" />
+                                        GitHub
+                                    </a>
+                                )}
+                                {app.linkedin?.trim() && (
+                                    <a
+                                        href={app.linkedin}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-purple-600 hover:underline inline-flex items-center gap-1 text-xs"
+                                    >
+                                        <Linkedin className="w-3.5 h-3.5" />
+                                        LinkedIn
+                                    </a>
+                                )}
+                                {app.portfolio?.trim() && (
+                                    <a
+                                        href={app.portfolio}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-purple-600 hover:underline inline-flex items-center gap-1 text-xs"
+                                    >
+                                        <Globe className="w-3.5 h-3.5" />
+                                        Portfolio
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    </CollapsibleBlock>
+
+                    {/* Activity log — collapsed by default */}
+                    <CollapsibleBlock
+                        title={`Activity (${activityCount})`}
+                        open={activityOpen}
+                        onToggle={() => setActivityOpen((v) => !v)}
+                    >
+                        <div className="pt-2 space-y-3">
+                            {emailCount > 0 && (
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-medium text-slate-400 uppercase">
+                                        Emails sent
+                                    </p>
+                                    {[...(app.communications || [])]
+                                        .sort(
+                                            (a, b) =>
+                                                new Date(b.sentAt).getTime() -
+                                                new Date(a.sentAt).getTime()
+                                        )
+                                        .map((email) => (
+                                            <p
+                                                key={email.id}
+                                                className="text-xs text-slate-600"
+                                            >
+                                                {format(
+                                                    new Date(email.sentAt),
+                                                    "MMM d"
+                                                )}{" "}
+                                                · {email.subject}
+                                                {!email.success && (
+                                                    <span className="text-red-500">
+                                                        {" "}
+                                                        (failed)
+                                                    </span>
+                                                )}
+                                            </p>
+                                        ))}
+                                </div>
+                            )}
+                            <ApplicationTimeline app={app} />
+                        </div>
+                    </CollapsibleBlock>
                 </div>
             </div>
         </div>,
         document.body
+    );
+}
+
+function CollapsibleBlock({
+    title,
+    open,
+    onToggle,
+    children,
+}: {
+    title: string;
+    open: boolean;
+    onToggle: () => void;
+    children: React.ReactNode;
+}) {
+    return (
+        <div className="border-t border-slate-100 pt-3">
+            <button
+                type="button"
+                onClick={onToggle}
+                className="flex w-full items-center justify-between text-sm font-medium text-slate-700 hover:text-slate-900"
+            >
+                {title}
+                <ChevronDown
+                    className={`w-4 h-4 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`}
+                />
+            </button>
+            {open && children}
+        </div>
     );
 }

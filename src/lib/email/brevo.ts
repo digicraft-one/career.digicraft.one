@@ -1,6 +1,4 @@
 import * as SibApiV3Sdk from "@getbrevo/brevo";
-import { ApplicationStatus } from "@/types/schemas";
-
 /** Strip optional quotes from .env values (e.g. `"noreply@digicraft.one"`). */
 function env(name: string): string | undefined {
     const value = process.env[name]?.trim();
@@ -46,7 +44,7 @@ export interface SendEmailPayload {
     htmlContent: string;
 }
 
-const EMAIL_WRAPPER = (content: string) => `<!DOCTYPE html>
+export const EMAIL_WRAPPER = (content: string) => `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;line-height:1.6;">
@@ -139,49 +137,6 @@ export async function sendNewApplicationAdminEmail(data: {
     });
 }
 
-const STATUS_MESSAGES: Record<
-    Exclude<ApplicationStatus, "pending">,
-    { subject: string; heading: string; body: string }
-> = {
-    shortlisted: {
-        subject: "You've been shortlisted",
-        heading: "Great news — you're shortlisted!",
-        body: "Your application impressed us and you've been shortlisted for the next round. We'll be in touch with details about the next steps.",
-    },
-    selected: {
-        subject: "Congratulations — you're selected!",
-        heading: "Congratulations!",
-        body: "We're excited to let you know that you've been selected for this role. Our team will reach out shortly with offer details and onboarding information.",
-    },
-    declined: {
-        subject: "Update on your application",
-        heading: "Thank you for your interest",
-        body: "After careful consideration, we've decided to move forward with other candidates for this role. We encourage you to apply for future openings that match your skills.",
-    },
-};
-
-export async function sendApplicationStatusEmail(data: {
-    name: string;
-    email: string;
-    jobTitle: string;
-    status: ApplicationStatus;
-}) {
-    if (data.status === "pending") return { success: true };
-
-    const msg = STATUS_MESSAGES[data.status];
-    const content = `
-<h2 style="color:#9333ea;margin:0 0 12px;">${msg.heading}</h2>
-<p style="color:#666;">Hi <strong>${data.name}</strong>,</p>
-<p style="color:#666;">Regarding your application for <strong>${data.jobTitle}</strong>:</p>
-<p style="color:#666;">${msg.body}</p>
-<p style="color:#666;">Best regards,<br/>DigiCraft Hiring Team</p>`;
-
-    return sendEmail({
-        to: [{ email: data.email, name: data.name }],
-        subject: `${msg.subject} – ${data.jobTitle} | DigiCraft Careers`,
-        htmlContent: EMAIL_WRAPPER(content),
-    });
-}
 
 export async function sendExternalNotification(data: {
     title: string;

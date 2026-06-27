@@ -9,6 +9,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { ALL_APPLICATION_STATUSES, STATUS_LABELS } from "@/lib/hiring/constants";
 import { Application, ApplicationStatus, ExperienceLevel, Job } from "@/lib/types";
 import { Search, X } from "lucide-react";
 
@@ -189,10 +190,11 @@ export default function ApplicationFiltersBar({
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All statuses</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="shortlisted">Shortlisted</SelectItem>
-                            <SelectItem value="selected">Selected</SelectItem>
-                            <SelectItem value="declined">Declined</SelectItem>
+                            {ALL_APPLICATION_STATUSES.map((status) => (
+                                <SelectItem key={status} value={status}>
+                                    {STATUS_LABELS[status]}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
 

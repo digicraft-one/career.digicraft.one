@@ -1,10 +1,14 @@
 import {
+    ActivityEntry,
     ApplicationStatus,
+    CommunicationEntry,
     EmploymentType,
     ExperienceLevel,
+    InterviewRound,
     JobStatus,
     SalaryRange,
     Seo,
+    SignIntegration,
     StatusHistoryEntry,
 } from "@/types/schemas";
 
@@ -48,6 +52,11 @@ export interface Application {
     notes: string[];
     status: ApplicationStatus;
     statusHistory: StatusHistoryEntry[];
+    activities: ActivityEntry[];
+    communications: CommunicationEntry[];
+    interviews: InterviewRound[];
+    signIntegration: SignIntegration;
+    declineReason?: string;
     createdAt: string;
     updatedAt: string;
 }

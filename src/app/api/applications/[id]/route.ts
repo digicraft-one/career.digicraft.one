@@ -1,9 +1,14 @@
 import { errorResponse, successResponse } from "@/lib/apiResponse";
 import { authOptions } from "@/lib/auth/options";
 import { connectToDB } from "@/lib/db/mongoose";
-import { sendApplicationStatusEmail } from "@/lib/email/brevo";
-import { sendApplicationStatusNotification } from "@/lib/telegram/telegram";
-import { Application } from "@/schemas/Application";
+import {
+    appendStatusChange,
+    createActivity,
+    notifyStatusChangeTelegram,
+    sendStatusEmailIfRequested,
+    updateSignIntegration,
+} from "@/lib/hiring/workflow";
+import { APPLICATION_STATUSES, Application } from "@/schemas/Application";
 import { ApplicationStatus } from "@/types/schemas";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -11,13 +16,6 @@ import { NextRequest, NextResponse } from "next/server";
 interface Params {
     params: Promise<{ id: string }>;
 }
-
-const VALID_STATUSES: ApplicationStatus[] = [
-    "pending",
-    "shortlisted",
-    "selected",
-    "declined",
-];
 
 export async function GET(_: NextRequest, { params }: Params) {
     const session = await getServerSession(authOptions);
@@ -81,31 +79,42 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         await connectToDB();
         const { id } = await params;
         const body = await req.json();
+        const adminName = session.user?.name || "Admin";
 
-        const existing = await Application.findById(id);
-        if (!existing)
+        const app = await Application.findById(id);
+        if (!app)
             return NextResponse.json(errorResponse("Not found"), {
                 status: 404,
             });
 
-        const update: Record<string, unknown> = {};
+        const sendEmail = body.sendEmail === true;
+        let statusChanged = false;
 
         if (body.status) {
-            if (!VALID_STATUSES.includes(body.status))
+            if (!APPLICATION_STATUSES.includes(body.status))
                 return NextResponse.json(
                     errorResponse("Invalid status"),
                     { status: 400 }
                 );
-            update.status = body.status;
-            if (body.status !== existing.status) {
-                update.statusHistory = [
-                    ...(existing.statusHistory || []),
-                    {
-                        status: body.status,
-                        changedAt: new Date(),
-                        changedBy: session.user?.name || "Admin",
-                    },
-                ];
+
+            if (body.status === "declined") {
+                const reason =
+                    body.declineReason?.trim() || app.declineReason?.trim();
+                if (!reason) {
+                    return NextResponse.json(
+                        errorResponse("Decline reason is required"),
+                        { status: 400 }
+                    );
+                }
+                body.declineReason = reason;
+            }
+
+            if (body.status !== app.status) {
+                appendStatusChange(app, body.status as ApplicationStatus, adminName, {
+                    note: body.statusNote,
+                    declineReason: body.declineReason,
+                });
+                statusChanged = true;
             }
         }
 
@@ -115,42 +124,46 @@ export async function PATCH(req: NextRequest, { params }: Params) {
                     errorResponse("Invalid notes"),
                     { status: 400 }
                 );
-            update.notes = body.notes;
-        }
 
-        const updated = await Application.findByIdAndUpdate(id, update, {
-            new: true,
-        });
-
-        if (
-            body.status &&
-            body.status !== existing.status &&
-            body.status !== "pending"
-        ) {
-            try {
-                await sendApplicationStatusEmail({
-                    name: existing.name,
-                    email: existing.email,
-                    jobTitle: existing.jobTitle,
-                    status: body.status,
-                });
-            } catch (e) {
-                console.error("Status email failed:", e);
-            }
-
-            try {
-                await sendApplicationStatusNotification({
-                    name: existing.name,
-                    jobTitle: existing.jobTitle,
-                    status: body.status,
-                });
-            } catch (e) {
-                console.error("Status telegram failed:", e);
+            const addedNotes = body.notes.filter(
+                (n: string) => !app.notes.includes(n)
+            );
+            app.notes = body.notes;
+            for (const note of addedNotes) {
+                app.activities.push(
+                    createActivity("note_added", adminName, "Note added", {
+                        note,
+                    })
+                );
             }
         }
+
+        if (body.signIntegration) {
+            updateSignIntegration(app, body.signIntegration, adminName);
+        }
+
+        if (statusChanged && sendEmail) {
+            await sendStatusEmailIfRequested(
+                app,
+                app.status,
+                adminName,
+                true,
+                { contractUrl: app.signIntegration?.contractUrl }
+            );
+        }
+
+        if (statusChanged) {
+            await notifyStatusChangeTelegram(
+                app.name,
+                app.jobTitle,
+                app.status
+            );
+        }
+
+        await app.save();
 
         return NextResponse.json(
-            successResponse(updated, "Application updated")
+            successResponse(app, "Application updated")
         );
     } catch (err) {
         return NextResponse.json(

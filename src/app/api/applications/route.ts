@@ -101,6 +101,14 @@ export async function POST(req: NextRequest) {
             statusHistory: [
                 { status: "pending", changedAt: new Date(), changedBy: "System" },
             ],
+            activities: [
+                {
+                    type: "application_received",
+                    at: new Date(),
+                    by: "System",
+                    summary: "Application submitted",
+                },
+            ],
         });
 
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://career.digicraft.one";

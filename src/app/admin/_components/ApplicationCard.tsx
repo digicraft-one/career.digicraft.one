@@ -3,16 +3,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Application, ApplicationStatus } from "@/lib/types";
+import { STATUS_COLORS, STATUS_LABELS } from "@/lib/hiring/constants";
+import { Application } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { Briefcase, Eye, Mail, Phone } from "lucide-react";
 
-const STATUS_COLORS: Record<ApplicationStatus, string> = {
-    pending: "bg-yellow-100 text-yellow-800",
-    shortlisted: "bg-blue-100 text-blue-800",
-    selected: "bg-green-100 text-green-800",
-    declined: "bg-red-100 text-red-800",
-};
+const STATUS_COLORS_MAP = STATUS_COLORS;
 
 interface ApplicationCardProps {
     app: Application;
@@ -37,9 +33,9 @@ export default function ApplicationCard({
                         </p>
                     </div>
                     <Badge
-                        className={`shrink-0 capitalize text-[10px] ${STATUS_COLORS[app.status]}`}
+                        className={`shrink-0 text-[10px] ${STATUS_COLORS_MAP[app.status] ?? "bg-slate-100 text-slate-700"}`}
                     >
-                        {app.status}
+                        {STATUS_LABELS[app.status] ?? app.status}
                     </Badge>
                 </div>
 
