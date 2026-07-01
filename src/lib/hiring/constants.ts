@@ -102,6 +102,13 @@ export const EMAIL_TEMPLATE_OPTIONS: {
 ];
 
 export const DEFAULT_TIMEZONE = "Asia/Kolkata";
+export const DEFAULT_TIMEZONE_LABEL = "IST";
+
+/** Hiring team WhatsApp for interview reschedule */
+export const HIRING_WHATSAPP_NUMBER = "8299797516";
+export const HIRING_WHATSAPP_E164 = "918299797516";
+export const HIRING_WHATSAPP_URL = `https://wa.me/${HIRING_WHATSAPP_E164}`;
+export const HIRING_WHATSAPP_DISPLAY = "+91 82997 97516";
 
 export function getStatusLabel(status: ApplicationStatus): string {
     return STATUS_LABELS[status] ?? status;

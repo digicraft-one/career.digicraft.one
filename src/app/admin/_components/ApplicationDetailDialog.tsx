@@ -30,7 +30,8 @@ import {
 } from "@/lib/hiring/constants";
 import { Application, ApplicationStatus } from "@/lib/types";
 import { EmailTemplateId, InterviewMode } from "@/types/schemas";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatISTCompact } from "@/lib/timezone";
+import { formatDistanceToNow } from "date-fns";
 import {
     Briefcase,
     ChevronDown,
@@ -493,10 +494,7 @@ export default function ApplicationDetailDialog({
                                                 key={email.id}
                                                 className="text-xs text-slate-600"
                                             >
-                                                {format(
-                                                    new Date(email.sentAt),
-                                                    "MMM d"
-                                                )}{" "}
+                                                {formatISTCompact(email.sentAt)}{" "}
                                                 · {email.subject}
                                                 {!email.success && (
                                                     <span className="text-red-500">

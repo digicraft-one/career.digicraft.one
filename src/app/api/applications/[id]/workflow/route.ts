@@ -18,6 +18,7 @@ import {
 } from "@/types/schemas";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
+import { parseScheduledAtInput } from "@/lib/timezone";
 
 interface Params {
     params: Promise<{ id: string }>;
@@ -100,7 +101,7 @@ export async function POST(req: NextRequest, { params }: Params) {
                 const interview = addInterviewRound(app, {
                     round,
                     label: body.label,
-                    scheduledAt: new Date(body.scheduledAt),
+                    scheduledAt: parseScheduledAtInput(body.scheduledAt),
                     timezone: body.timezone || "Asia/Kolkata",
                     mode,
                     meetingLink: body.meetingLink.trim(),
@@ -137,7 +138,9 @@ export async function POST(req: NextRequest, { params }: Params) {
                 if (body.round !== undefined) updates.round = body.round;
                 if (body.label !== undefined) updates.label = body.label;
                 if (body.scheduledAt)
-                    updates.scheduledAt = new Date(body.scheduledAt);
+                    updates.scheduledAt = parseScheduledAtInput(
+                        body.scheduledAt
+                    );
                 if (body.timezone) updates.timezone = body.timezone;
                 if (body.mode) {
                     if (!VALID_MODES.includes(body.mode)) {

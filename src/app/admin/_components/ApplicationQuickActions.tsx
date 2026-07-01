@@ -9,7 +9,7 @@ import { DEFAULT_TIMEZONE } from "@/lib/hiring/constants";
 import { buildSignHiringUserUrl } from "@/lib/signIntegration";
 import { Application } from "@/lib/types";
 import { EmailTemplateId, InterviewMode } from "@/types/schemas";
-import { format } from "date-fns";
+import { formatISTShort } from "@/lib/timezone";
 import { ChevronDown, ExternalLink, PenLine } from "lucide-react";
 import { useState } from "react";
 
@@ -78,7 +78,7 @@ export default function ApplicationQuickActions({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <Label className="text-xs text-slate-500">
-                                Date & time
+                                Date & time (IST)
                             </Label>
                             <Input
                                 type="datetime-local"
@@ -140,10 +140,7 @@ export default function ApplicationQuickActions({
                                 >
                                     <p className="font-medium text-slate-800">
                                         Round {iv.round} ·{" "}
-                                        {format(
-                                            new Date(iv.scheduledAt),
-                                            "PPp"
-                                        )}
+                                        {formatISTShort(iv.scheduledAt)}
                                     </p>
                                     {iv.meetingLink && (
                                         <a
@@ -181,6 +178,10 @@ export default function ApplicationQuickActions({
                 onToggle={() => setOfferOpen((v) => !v)}
             >
                 <div className="space-y-3 pt-1">
+                    <p className="text-[11px] text-slate-500">
+                        Create the contract in Sign, copy the signing link from
+                        the contract page, then paste it below.
+                    </p>
                     <a
                         href={signPrefillUrl}
                         target="_blank"
@@ -203,7 +204,7 @@ export default function ApplicationQuickActions({
                         <Input
                             value={contractUrl}
                             onChange={(e) => setContractUrl(e.target.value)}
-                            placeholder="Paste signing URL"
+                            placeholder="Paste signing URL from Sign admin"
                             disabled={loading}
                             className="mt-1 bg-white"
                         />

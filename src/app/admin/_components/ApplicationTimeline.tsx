@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Application } from "@/lib/types";
 import { ActivityType } from "@/types/schemas";
-import { format } from "date-fns";
+import { formatISTShort } from "@/lib/timezone";
 import {
     Calendar,
     FileText,
@@ -60,7 +60,7 @@ export default function ApplicationTimeline({ app }: ApplicationTimelineProps) {
                             {entry.summary}
                         </p>
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-slate-400">
-                            <span>{format(new Date(entry.at), "PPp")}</span>
+                            <span>{formatISTShort(entry.at)}</span>
                             {entry.by && <span>· {entry.by}</span>}
                             <Badge
                                 variant="outline"

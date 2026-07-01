@@ -304,9 +304,7 @@ export default function AdminApplicationsPage() {
                         "schedule_interview",
                         {
                             ...data,
-                            scheduledAt: new Date(
-                                data.scheduledAt
-                            ).toISOString(),
+                            scheduledAt: data.scheduledAt,
                         },
                         "Scheduling interview…",
                         "Interview scheduled & invite sent"

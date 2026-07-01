@@ -1,3 +1,5 @@
+import { formatISTNow } from "@/lib/timezone";
+
 export interface SendTelegramMessagePayload {
     text: string;
     chatIds?: string[];
@@ -80,7 +82,7 @@ export async function sendApplicationNotification(applicationData: {
 <b>Phone:</b> ${applicationData.phone}
 <b>Skills:</b> ${applicationData.primarySkills}
 <b>Resume:</b> ${applicationData.resume}
-<b>Time:</b> ${new Date().toLocaleString()}`;
+<b>Time:</b> ${formatISTNow()}`;
     return sendTelegramMessage({ text });
 }
 
@@ -94,6 +96,6 @@ export async function sendApplicationStatusNotification(data: {
 <b>Candidate:</b> ${data.name}
 <b>Position:</b> ${data.jobTitle}
 <b>New Status:</b> ${data.status}
-<b>Time:</b> ${new Date().toLocaleString()}`;
+<b>Time:</b> ${formatISTNow()}`;
     return sendTelegramMessage({ text });
 }

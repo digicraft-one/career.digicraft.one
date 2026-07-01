@@ -1,5 +1,9 @@
 import { EmailTemplateId } from "@/types/schemas";
-import { format } from "date-fns";
+import {
+    HIRING_WHATSAPP_DISPLAY,
+    HIRING_WHATSAPP_URL,
+} from "@/lib/hiring/constants";
+import { formatISTDateTime } from "@/lib/timezone";
 
 export interface EmailTemplateContext {
     name: string;
@@ -13,15 +17,9 @@ export interface EmailTemplateContext {
     customBody?: string;
 }
 
-function formatInterviewDateTime(
-    scheduledAt?: Date | string,
-    timezone?: string
-): string {
+function formatInterviewDateTime(scheduledAt?: Date | string): string {
     if (!scheduledAt) return "To be confirmed";
-    const date = new Date(scheduledAt);
-    if (Number.isNaN(date.getTime())) return "To be confirmed";
-    const formatted = format(date, "EEEE, MMMM d, yyyy 'at' h:mm a");
-    return timezone ? `${formatted} (${timezone})` : formatted;
+    return formatISTDateTime(scheduledAt);
 }
 
 function escapeHtml(text: string): string {
@@ -42,6 +40,12 @@ function heading(text: string): string {
 
 function linkButton(href: string, label: string): string {
     return `<p style="margin:20px 0;"><a href="${escapeHtml(href)}" style="display:inline-block;background:#9333ea;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;">${label}</a></p>`;
+}
+
+function interviewRescheduleParagraph(): string {
+    return paragraph(
+        `Please join a few minutes early and ensure a stable internet connection. Need to reschedule? Contact us on <a href="${HIRING_WHATSAPP_URL}" style="color:#9333ea;font-weight:600;">WhatsApp at ${HIRING_WHATSAPP_DISPLAY}</a>.`
+    );
 }
 
 export function buildEmailContent(
@@ -84,10 +88,7 @@ export function buildEmailContent(
             };
 
         case "interview_invite": {
-            const when = formatInterviewDateTime(
-                ctx.scheduledAt,
-                ctx.timezone
-            );
+            const when = formatInterviewDateTime(ctx.scheduledAt);
             const meetBlock = ctx.meetingLink
                 ? linkButton(ctx.meetingLink, "Join meeting")
                 : "";
@@ -108,18 +109,13 @@ export function buildEmailContent(
                     ) +
                     interviewerLine +
                     meetBlock +
-                    paragraph(
-                        "Please join a few minutes early and ensure a stable internet connection. Reply to this email if you need to reschedule."
-                    ) +
+                    interviewRescheduleParagraph() +
                     signOff,
             };
         }
 
         case "interview_reminder": {
-            const when = formatInterviewDateTime(
-                ctx.scheduledAt,
-                ctx.timezone
-            );
+            const when = formatInterviewDateTime(ctx.scheduledAt);
             const meetBlock = ctx.meetingLink
                 ? linkButton(ctx.meetingLink, "Join meeting")
                 : "";
@@ -133,6 +129,7 @@ export function buildEmailContent(
                         `This is a friendly reminder about your interview for <strong>${escapeHtml(ctx.jobTitle)}</strong> on <strong>${escapeHtml(when)}</strong>.`
                     ) +
                     meetBlock +
+                    interviewRescheduleParagraph() +
                     signOff,
             };
         }
