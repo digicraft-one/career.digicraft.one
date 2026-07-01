@@ -6,6 +6,7 @@ import {
     appendStatusChange,
     notifyStatusChangeTelegram,
     sendInterviewInviteEmail,
+    sendInterviewRescheduleEmail,
     sendTemplateEmail,
     updateInterviewRound,
     updateSignIntegration,
@@ -44,6 +45,7 @@ const VALID_TEMPLATES: EmailTemplateId[] = [
     "under_review",
     "shortlisted",
     "interview_invite",
+    "interview_reschedule",
     "interview_reminder",
     "selected",
     "offer",
@@ -183,6 +185,89 @@ export async function POST(req: NextRequest, { params }: Params) {
                 await app.save();
                 return NextResponse.json(
                     successResponse(app, "Interview updated")
+                );
+            }
+
+            case "reschedule_interview": {
+                if (!body.interviewId || !body.scheduledAt) {
+                    return NextResponse.json(
+                        errorResponse(
+                            "Interview ID and new date/time are required"
+                        ),
+                        { status: 400 }
+                    );
+                }
+
+                const interview = app.interviews.find(
+                    (i) => i.id === body.interviewId
+                );
+                if (!interview) {
+                    return NextResponse.json(
+                        errorResponse("Interview not found"),
+                        { status: 404 }
+                    );
+                }
+
+                const previousScheduledAt = new Date(interview.scheduledAt);
+                const newScheduledAt = parseScheduledAtInput(body.scheduledAt);
+                const meetingLink =
+                    body.meetingLink !== undefined
+                        ? String(body.meetingLink).trim()
+                        : interview.meetingLink;
+
+                if (!meetingLink) {
+                    return NextResponse.json(
+                        errorResponse("Meeting link is required"),
+                        { status: 400 }
+                    );
+                }
+
+                const timeUnchanged =
+                    newScheduledAt.getTime() === previousScheduledAt.getTime();
+                const linkUnchanged = meetingLink === interview.meetingLink;
+
+                if (timeUnchanged && linkUnchanged) {
+                    return NextResponse.json(
+                        errorResponse("No changes to save"),
+                        { status: 400 }
+                    );
+                }
+
+                const updated = updateInterviewRound(
+                    app,
+                    body.interviewId,
+                    {
+                        scheduledAt: newScheduledAt,
+                        meetingLink,
+                        outcome: "scheduled",
+                    },
+                    adminName
+                );
+
+                if (!updated) {
+                    return NextResponse.json(
+                        errorResponse("Interview not found"),
+                        { status: 404 }
+                    );
+                }
+
+                if (body.sendNotify !== false) {
+                    await sendInterviewRescheduleEmail(
+                        app,
+                        updated,
+                        adminName,
+                        previousScheduledAt
+                    );
+                }
+
+                await app.save();
+                return NextResponse.json(
+                    successResponse(
+                        app,
+                        body.sendNotify !== false
+                            ? "Interview rescheduled & candidate notified"
+                            : "Interview rescheduled"
+                    )
                 );
             }
 

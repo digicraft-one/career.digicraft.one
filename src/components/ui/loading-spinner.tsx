@@ -61,6 +61,7 @@ export const LOADING_MESSAGES: Record<string, string> = {
     send_email: "Sending email…",
     link_contract: "Saving contract link…",
     send_interview_invite: "Sending interview invite…",
+    reschedule_interview: "Rescheduling & notifying…",
     update_interview: "Updating interview…",
 };
 

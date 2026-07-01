@@ -3,10 +3,12 @@
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { AdminApplicationsSkeleton, Skeleton } from "@/components/skeletons";
+import { Suspense } from "react";
 import { fetchAPI } from "@/lib/api";
 import { Application, ApplicationStatus, Job } from "@/lib/types";
 import { EmailTemplateId } from "@/types/schemas";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import ApplicationCard from "../_components/ApplicationCard";
 import ApplicationDetailDialog from "../_components/ApplicationDetailDialog";
@@ -34,6 +36,22 @@ function buildFormState(app: Application): FormState {
 }
 
 export default function AdminApplicationsPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="space-y-3">
+                    <Skeleton className="h-10 w-full max-w-xl" />
+                    <AdminApplicationsSkeleton />
+                </div>
+            }
+        >
+            <AdminApplicationsPageContent />
+        </Suspense>
+    );
+}
+
+function AdminApplicationsPageContent() {
+    const searchParams = useSearchParams();
     const [applications, setApplications] = useState<Application[] | null>(
         null
     );
@@ -70,6 +88,14 @@ export default function AdminApplicationsPage() {
         };
         load();
     }, [loadApplications]);
+
+    useEffect(() => {
+        const openId = searchParams.get("open");
+        if (!openId || !applications?.length) return;
+        if (applications.some((a) => a._id === openId)) {
+            setDetailAppId(openId);
+        }
+    }, [searchParams, applications]);
 
     const updateApplicationInState = (updated: Application) => {
         setApplications(

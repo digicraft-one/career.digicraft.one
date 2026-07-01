@@ -48,6 +48,7 @@ export type EmailTemplateId =
     | "under_review"
     | "shortlisted"
     | "interview_invite"
+    | "interview_reschedule"
     | "interview_reminder"
     | "selected"
     | "offer"

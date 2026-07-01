@@ -5,6 +5,7 @@ import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import {
     Briefcase,
+    Calendar,
     ExternalLink,
     FileUser,
     LayoutDashboard,
@@ -24,6 +25,11 @@ const NAV = [
         href: "/admin/applications",
         label: "Applications",
         icon: FileUser,
+    },
+    {
+        href: "/admin/interviews",
+        label: "Interviews",
+        icon: Calendar,
     },
 ];
 

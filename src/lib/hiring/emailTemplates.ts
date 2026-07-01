@@ -10,6 +10,7 @@ export interface EmailTemplateContext {
     jobTitle: string;
     meetingLink?: string;
     scheduledAt?: Date | string;
+    previousScheduledAt?: Date | string;
     timezone?: string;
     interviewer?: string;
     contractUrl?: string;
@@ -106,6 +107,39 @@ export function buildEmailContent(
                     role +
                     paragraph(
                         `We'd like to schedule an interview with you on <strong>${escapeHtml(when)}</strong>.`
+                    ) +
+                    interviewerLine +
+                    meetBlock +
+                    interviewRescheduleParagraph() +
+                    signOff,
+            };
+        }
+
+        case "interview_reschedule": {
+            const when = formatInterviewDateTime(ctx.scheduledAt);
+            const previousWhen = formatInterviewDateTime(
+                ctx.previousScheduledAt
+            );
+            const meetBlock = ctx.meetingLink
+                ? linkButton(ctx.meetingLink, "Join meeting")
+                : "";
+            const interviewerLine = ctx.interviewer
+                ? paragraph(
+                      `Your interviewer: <strong>${escapeHtml(ctx.interviewer)}</strong>`
+                  )
+                : "";
+
+            return {
+                subject: `Interview rescheduled – ${ctx.jobTitle} | DigiCraft Careers`,
+                htmlContent:
+                    heading("Your interview has been rescheduled") +
+                    hi +
+                    role +
+                    paragraph(
+                        `Your interview was previously scheduled for <strong>${escapeHtml(previousWhen)}</strong>.`
+                    ) +
+                    paragraph(
+                        `The new date and time is <strong>${escapeHtml(when)}</strong>.`
                     ) +
                     interviewerLine +
                     meetBlock +

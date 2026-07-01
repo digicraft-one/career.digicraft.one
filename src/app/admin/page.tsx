@@ -6,6 +6,7 @@ import { connectToDB } from "@/lib/db/mongoose";
 import { Application } from "@/schemas/Application";
 import { Job } from "@/schemas/Job";
 import { STATUS_COLORS, STATUS_LABELS } from "@/lib/hiring/constants";
+import { collectUpcomingInterviews } from "@/lib/hiring/upcomingInterviews";
 import { ChevronRight } from "lucide-react";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
@@ -13,9 +14,10 @@ import { redirect } from "next/navigation";
 
 async function getStats() {
     await connectToDB();
-    const [jobs, applications] = await Promise.all([
+    const [jobs, applications, allForInterviews] = await Promise.all([
         Job.find({}).sort({ createdAt: -1 }).lean(),
         Application.find({}).sort({ createdAt: -1 }).limit(5).lean(),
+        Application.find({}).select("interviews status jobTitle name email phone").lean(),
     ]);
 
     const allApplications = await Application.countDocuments();
@@ -23,11 +25,16 @@ async function getStats() {
         status: { $in: ["pending", "under_review"] },
     });
 
+    const upcomingInterviews = collectUpcomingInterviews(
+        allForInterviews as Parameters<typeof collectUpcomingInterviews>[0]
+    ).length;
+
     return {
         totalJobs: jobs.length,
         publishedJobs: jobs.filter((j) => j.status === "published").length,
         totalApplications: allApplications,
         pendingApplications,
+        upcomingInterviews,
         recentApplications: applications,
     };
 }
@@ -61,6 +68,12 @@ export default async function AdminDashboardPage() {
             href: "/admin/applications",
             accent: "text-amber-600",
         },
+        {
+            label: "Interviews",
+            value: stats.upcomingInterviews,
+            href: "/admin/interviews",
+            accent: "text-indigo-600",
+        },
     ];
 
     return (
@@ -70,7 +83,7 @@ export default async function AdminDashboardPage() {
                 description={`Welcome back${session.user?.name ? `, ${session.user.name}` : ""}`}
             />
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                 {statItems.map((item) => (
                     <Link key={item.label} href={item.href}>
                         <Card className="bg-white hover:shadow-sm transition-shadow h-full">

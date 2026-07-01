@@ -247,6 +247,42 @@ export function updateInterviewRound(
     return interview;
 }
 
+export async function sendInterviewRescheduleEmail(
+    app: ApplicationDocument,
+    interview: InterviewRound,
+    sentBy: string,
+    previousScheduledAt: Date
+): Promise<boolean> {
+    const { success, communication } = await sendAndLogEmail(
+        app,
+        "interview_reschedule",
+        {
+            name: app.name,
+            jobTitle: app.jobTitle,
+            meetingLink: interview.meetingLink,
+            scheduledAt: interview.scheduledAt,
+            previousScheduledAt,
+            timezone: interview.timezone,
+            interviewer: interview.interviewer,
+        },
+        sentBy
+    );
+
+    app.communications.push(communication);
+    app.activities.push(
+        createActivity(
+            "email_sent",
+            sentBy,
+            success
+                ? `Interview reschedule email sent for round ${interview.round}`
+                : `Interview reschedule email failed for round ${interview.round}`,
+            { interviewId: interview.id, templateId: "interview_reschedule", success }
+        )
+    );
+
+    return success;
+}
+
 export async function sendInterviewInviteEmail(
     app: ApplicationDocument,
     interview: InterviewRound,
